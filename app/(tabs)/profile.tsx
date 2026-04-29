@@ -42,7 +42,7 @@ export default function ProfileScreen() {
           <View style={styles.guestAvatarCircle}>
             <User size={48} color={COLORS.textLight} strokeWidth={1.5} />
           </View>
-          <Text style={styles.guestTitle}>Welcome to mpmarketing</Text>
+          <Text style={styles.guestTitle}>Welcome to SellAdv.com</Text>
           <Text style={styles.guestSubtitle}>India's trusted marketplace for buying and selling</Text>
           <TouchableOpacity
             style={styles.loginBtn}
@@ -58,6 +58,7 @@ export default function ProfileScreen() {
     { icon: Package, label: 'My Ads', subtitle: 'Manage your listings', onPress: () => router.push('/profile/my-ads') },
     { icon: Heart, label: 'Favourites', subtitle: 'Saved ads', onPress: () => router.push('/profile/favourites') },
     { icon: ShieldCheck, label: 'Verify Account', subtitle: 'KYC & trust badge', onPress: () => router.push('/profile/verify') },
+    ...(profile?.is_admin ? [{ icon: ShieldCheck, label: 'Admin Dashboard', subtitle: 'Platform Management', onPress: () => router.push('/admin') }] : []),
     { icon: Settings, label: 'Settings', subtitle: 'App preferences', onPress: () => router.push('/settings') },
     { icon: HelpCircle, label: 'Help & Support', subtitle: 'FAQs & contact', onPress: () => router.push('/help') },
   ];
@@ -75,7 +76,7 @@ export default function ProfileScreen() {
               style={styles.avatar}
             />
             <View style={styles.profileInfo}>
-              <Text style={styles.userName}>{profile?.full_name || 'mpmarketing User'}</Text>
+              <Text style={styles.userName}>{profile?.full_name || 'SellAdv.com User'}</Text>
               <Text style={styles.memberSince}>Member since {new Date(profile?.created_at || Date.now()).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}</Text>
               <View style={styles.ratingRow}>
                 <Star size={14} color={COLORS.accent} fill={COLORS.accent} />
@@ -151,7 +152,7 @@ export default function ProfileScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>mpmarketing v1.0</Text>
+          <Text style={styles.footerText}>SellAdv.com v1.0</Text>
           <Text style={styles.footerText}>by Evolucentsphere Pvt Ltd</Text>
         </View>
       </ScrollView>

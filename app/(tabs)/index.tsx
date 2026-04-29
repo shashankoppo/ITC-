@@ -10,19 +10,22 @@ import {
   Dimensions,
   TouchableOpacity,
   StatusBar,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Search, SlidersHorizontal, Bell, MapPin, ChevronDown, Rocket, Sparkles, TrendingUp } from 'lucide-react-native';
+import { Search, SlidersHorizontal, Bell, MapPin, ChevronDown, Rocket, Sparkles, TrendingUp, Check } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { supabase } from '@/lib/supabase';
+import { productApi, categoryApi, favoriteApi } from '@/lib/api';
 import { Product, Category } from '@/types/database';
 import { ProductCard } from '@/components/ProductCard';
 import { CategoryCard } from '@/components/CategoryCard';
 import { AdBanner } from '@/components/AdBanner';
 import { PremiumSlider } from '@/components/PremiumSlider';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from '@/contexts/LocationContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '@/lib/mockData';
 
@@ -42,11 +45,20 @@ export default function HomeScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCity, setSelectedCity] = useState('India');
+  const [sortBy, setSortBy] = useState('newest');
+  const { selectedCity, setSelectedCity, availableCities } = useLocation();
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showSortModal, setShowSortModal] = useState(false);
+
+  const SORT_OPTIONS = [
+    { label: 'Newest First', value: 'newest' },
+    { label: 'Price: Low to High', value: 'price_low' },
+    { label: 'Price: High to Low', value: 'price_high' },
+  ];
 
   useEffect(() => {
     loadInitialData();
-  }, []);
+  }, [selectedCity, sortBy]);
 
   useEffect(() => {
     if (user) {
@@ -66,17 +78,8 @@ export default function HomeScreen() {
 
   const loadCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true });
-
-      if (error) {
-        setCategories(MOCK_CATEGORIES);
-      } else if (data && data.length > 0) {
-        setCategories(data);
-      }
+      const data = await categoryApi.getAllCategories();
+      setCategories(data);
     } catch (error) {
       console.error('Error loading categories:', error);
       setCategories(MOCK_CATEGORIES);
@@ -85,19 +88,8 @@ export default function HomeScreen() {
 
   const loadPremiumProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, profiles(*), categories(*)')
-        .eq('status', 'active')
-        .eq('tier', 'premium')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error || !data || data.length === 0) {
-        setPremiumProducts(MOCK_PRODUCTS.filter(p => p.tier === 'premium').slice(0, 5));
-      } else {
-        setPremiumProducts(data || []);
-      }
+      const data = await productApi.getPremiumProducts(10, selectedCity);
+      setPremiumProducts(data);
     } catch (error) {
       setPremiumProducts(MOCK_PRODUCTS.filter(p => p.tier === 'premium').slice(0, 5));
     }
@@ -105,38 +97,17 @@ export default function HomeScreen() {
 
   const loadProducts = async (pageNum: number, reset: boolean = false, query: string = searchQuery) => {
     try {
-      const from = pageNum * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
-
-      let supabaseQuery = supabase
-        .from('products')
-        .select('*, profiles(*), categories(*)')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
+      let data;
       if (query.trim()) {
-        supabaseQuery = supabaseQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
-      }
-
-      const { data, error } = await supabaseQuery;
-
-      let processedProducts: Product[] = [];
-      if (error || !data || data.length === 0) {
-        // Use mock data if DB is empty or fails
-        processedProducts = MOCK_PRODUCTS;
-        if (query.trim()) {
-          processedProducts = processedProducts.filter(p => 
-            p.title.toLowerCase().includes(query.toLowerCase()) || 
-            p.description.toLowerCase().includes(query.toLowerCase())
-          );
-        }
+        data = await productApi.searchProducts(query, ITEMS_PER_PAGE, selectedCity, sortBy);
       } else {
-        processedProducts = (data || []).map((p, idx) => ({
-          ...p,
-          tier: p.tier || (idx % 7 === 0 ? 'premium' : idx % 3 === 0 ? 'standard' : 'free')
-        })) as Product[];
+        data = await productApi.getProducts(pageNum, ITEMS_PER_PAGE, selectedCity, sortBy);
       }
+
+      const processedProducts = data.map((p: any, idx: number) => ({
+        ...p,
+        tier: p.tier || (idx % 7 === 0 ? 'premium' : idx % 3 === 0 ? 'standard' : 'free')
+      })) as Product[];
 
       if (reset) {
         setProducts(processedProducts);
@@ -164,13 +135,7 @@ export default function HomeScreen() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('favorites')
-        .select('product_id')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
+      const data = await favoriteApi.getUserFavorites(user.id);
       const favoriteIds = new Set(data?.map((f) => f.product_id) || []);
       setFavorites(favoriteIds);
     } catch (error) {
@@ -184,21 +149,18 @@ export default function HomeScreen() {
     const isFavorite = favorites.has(productId);
     const newFavorites = new Set(favorites);
 
-    if (isFavorite) {
-      newFavorites.delete(productId);
-      await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('product_id', productId);
-    } else {
-      newFavorites.add(productId);
-      await supabase
-        .from('favorites')
-        .insert({ user_id: user.id, product_id: productId });
+    try {
+      if (isFavorite) {
+        newFavorites.delete(productId);
+        await favoriteApi.removeFavorite(user.id, productId);
+      } else {
+        newFavorites.add(productId);
+        await favoriteApi.addFavorite(user.id, productId);
+      }
+      setFavorites(newFavorites);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
     }
-
-    setFavorites(newFavorites);
   };
 
   const onRefresh = useCallback(async () => {
@@ -220,12 +182,12 @@ export default function HomeScreen() {
   const renderItem = ({ item, index }: { item: Product; index: number }) => {
     return (
       <View style={styles.productWrapper}>
-        <ProductCard
+            <ProductCard
           product={item}
-          onFavoriteToggle={handleFavoriteToggle}
+              onFavoriteToggle={handleFavoriteToggle}
           isFavorite={favorites.has(item.id)}
-        />
-      </View>
+            />
+          </View>
     );
   };
 
@@ -258,18 +220,17 @@ export default function HomeScreen() {
         style={styles.header}
       >
         <View style={styles.headerTop}>
-          <TouchableOpacity style={styles.locationPicker}>
-            <View style={styles.locationIconCircle}>
-              <MapPin size={16} color={COLORS.white} />
-            </View>
-            <View>
-              <Text style={styles.locationLabel}>Your location</Text>
-              <View style={styles.locationValueRow}>
-                <Text style={styles.locationValue}>{selectedCity}</Text>
-                <ChevronDown size={14} color={COLORS.white} />
-              </View>
-            </View>
-          </TouchableOpacity>
+          <View style={styles.headerBrand}>
+            <Text style={styles.appName}>SellAdv.com</Text>
+            <TouchableOpacity 
+              style={styles.locationPicker}
+              onPress={() => setShowLocationModal(true)}
+            >
+              <MapPin size={12} color={COLORS.white} />
+              <Text style={styles.locationValueSmall}>{selectedCity}</Text>
+              <ChevronDown size={12} color={COLORS.white} />
+            </TouchableOpacity>
+          </View>
           <View style={styles.headerActions}>
             <TouchableOpacity 
               style={styles.headerBtn}
@@ -292,7 +253,10 @@ export default function HomeScreen() {
             placeholderTextColor={COLORS.textLight}
           />
           <View style={styles.vDivider} />
-          <TouchableOpacity style={styles.filterBtn}>
+          <TouchableOpacity 
+            style={styles.filterBtn}
+            onPress={() => setShowSortModal(true)}
+          >
             <SlidersHorizontal size={18} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
@@ -327,11 +291,6 @@ export default function HomeScreen() {
               <PremiumSlider products={premiumProducts} />
             </View>
 
-            {/* Premium Ad */}
-            <View style={styles.adPadding}>
-              <AdBanner type="premium" />
-            </View>
-
             {/* Categories */}
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Explore Categories</Text>
@@ -362,6 +321,98 @@ export default function HomeScreen() {
           </View>
         }
       />
+
+      {/* Location Selection Modal */}
+      <Modal
+        visible={showLocationModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLocationModal(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay} 
+          onPress={() => setShowLocationModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Location</Text>
+              <TouchableOpacity onPress={() => setShowLocationModal(false)}>
+                <Text style={styles.closeBtn}>Close</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.cityList}>
+              {availableCities.map((city) => (
+                <TouchableOpacity
+                  key={city}
+                  style={[
+                    styles.cityItem,
+                    selectedCity === city && styles.selectedCityItem
+                  ]}
+                  onPress={() => {
+                    setSelectedCity(city);
+                    setShowLocationModal(false);
+                    setPage(0);
+                  }}
+                >
+                  <Text style={[
+                    styles.cityText,
+                    selectedCity === city && styles.selectedCityText
+                  ]}>
+                    {city}
+                  </Text>
+                  {selectedCity === city && <MapPin size={16} color={COLORS.primary} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Sort Selection Modal */}
+      <Modal
+        visible={showSortModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSortModal(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay} 
+          onPress={() => setShowSortModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Sort By</Text>
+              <TouchableOpacity onPress={() => setShowSortModal(false)}>
+                <Text style={styles.closeBtn}>Close</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.cityList}>
+              {SORT_OPTIONS.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.cityItem,
+                    sortBy === option.value && styles.selectedCityItem
+                  ]}
+                  onPress={() => {
+                    setSortBy(option.value);
+                    setShowSortModal(false);
+                    setPage(0);
+                  }}
+                >
+                  <Text style={[
+                    styles.cityText,
+                    sortBy === option.value && styles.selectedCityText
+                  ]}>
+                    {option.label}
+                  </Text>
+                  {sortBy === option.value && <Check size={16} color={COLORS.primary} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -400,34 +451,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: SPACING.sm + 4,
   },
+  headerBrand: {
+    gap: 4,
+  },
+  appName: {
+    ...FONTS.h1,
+    fontSize: 22,
+    color: COLORS.white,
+    letterSpacing: 1,
+    fontWeight: '900',
+  },
   locationPicker: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 4,
+    opacity: 0.9,
   },
-  locationIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  locationLabel: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.7)',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  locationValueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  locationValue: {
-    fontSize: 15,
+  locationValueSmall: {
+    fontSize: 12,
     color: COLORS.white,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   headerActions: {
     flexDirection: 'row',
@@ -546,5 +589,58 @@ const styles = StyleSheet.create({
   footerIndicator: {
     paddingVertical: SPACING.xl,
     alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.xl,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.lg,
+    maxHeight: '70%',
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.divider,
+  },
+  modalTitle: {
+    ...FONTS.h2,
+    color: COLORS.text,
+  },
+  closeBtn: {
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
+  cityList: {
+    padding: SPACING.md,
+  },
+  cityItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.md,
+  },
+  selectedCityItem: {
+    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+  },
+  cityText: {
+    ...FONTS.body,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  selectedCityText: {
+    color: COLORS.primary,
+    fontWeight: '700',
   },
 });

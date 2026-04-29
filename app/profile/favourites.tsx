@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Product } from '@/types/database';
 import { ProductCard } from '@/components/ProductCard';
+import { favoriteApi } from '@/lib/api';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 export default function FavouritesScreen() {
@@ -24,12 +25,7 @@ export default function FavouritesScreen() {
   const loadFavourites = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('favorites')
-        .select('*, products(*, profiles(*), categories(*))')
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
+      const data = await favoriteApi.getUserFavorites(user?.id || '');
       
       const favoriteProducts = data
         ?.map((fav: any) => fav.products)
@@ -47,13 +43,7 @@ export default function FavouritesScreen() {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('product_id', productId);
-
-      if (error) throw error;
+      await favoriteApi.removeFavorite(user.id, productId);
       setProducts(products.filter(p => p.id !== productId));
     } catch (error) {
       console.error('Error removing favorite:', error);

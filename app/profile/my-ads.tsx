@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, MoreVertical, Edit2, Trash2, Eye, MessageSquare } from 'lucide-react-native';
+import { ArrowLeft, MoreVertical, Edit2, Trash2, Eye, MessageSquare, Zap } from 'lucide-react-native';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,13 +23,7 @@ export default function MyAdsScreen() {
   const loadMyAds = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await productApi.getUserProducts(user?.id || '');
       setProducts(data || []);
     } catch (error) {
       console.error('Error loading my ads:', error);
@@ -46,12 +40,7 @@ export default function MyAdsScreen() {
         style: 'destructive', 
         onPress: async () => {
           try {
-            const { error } = await supabase
-              .from('products')
-              .delete()
-              .eq('id', productId);
-            
-            if (error) throw error;
+            await productApi.deleteProduct(productId);
             setProducts(products.filter(p => p.id !== productId));
           } catch (error) {
             Alert.alert('Error', 'Could not delete the listing.');
@@ -93,15 +82,20 @@ export default function MyAdsScreen() {
             style={styles.actionBtn}
             onPress={() => router.push(`/product/${item.id}`)}
           >
-            <Eye size={16} color={COLORS.primary} />
             <Text style={styles.actionBtnText}>View</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.actionBtn, styles.editBtn]}
             onPress={() => router.push(`/product/edit/${item.id}`)}
           >
-            <Edit2 size={16} color={COLORS.white} />
             <Text style={[styles.actionBtnText, { color: COLORS.white }]}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.actionBtn, styles.boostBtn]}
+            onPress={() => router.push(`/payment/checkout?productId=${item.id}`)}
+          >
+            <Zap size={14} color={COLORS.primary} fill={COLORS.primary} />
+            <Text style={[styles.actionBtnText, { color: COLORS.primary }]}>Boost</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -258,6 +252,10 @@ const styles = StyleSheet.create({
   },
   editBtn: {
     backgroundColor: COLORS.primary,
+  },
+  boostBtn: {
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
   },
   actionBtnText: {
     fontSize: 12,

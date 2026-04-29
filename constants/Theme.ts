@@ -1,4 +1,4 @@
-// mpmarketing Design System — Premium Authority
+// SellAdv.com Design System — Premium Authority
 // India's Premier Business Marketplace
 
 export const COLORS = {

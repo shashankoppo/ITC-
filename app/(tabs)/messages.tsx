@@ -11,9 +11,9 @@ import { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MessageCircle, Search } from 'lucide-react-native';
-import { supabase } from '@/lib/supabase';
 import { Conversation } from '@/types/database';
 import { useAuth } from '@/contexts/AuthContext';
+import { messageApi } from '@/lib/api';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 export default function MessagesScreen() {
@@ -34,18 +34,7 @@ export default function MessagesScreen() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select(`
-          *,
-          products(*),
-          buyer:profiles!conversations_buyer_id_fkey(*),
-          seller:profiles!conversations_seller_id_fkey(*)
-        `)
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order('last_message_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await messageApi.getConversations(user.id);
       setConversations(data || []);
     } catch (error) {
       console.error('Error loading conversations:', error);

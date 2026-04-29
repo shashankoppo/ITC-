@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "mpmarketing",
-    "slug": "mpmarketing",
+    "name": "MP MARKET",
+    "slug": "mpmarket",
     "version": "2.0.0",
-    "description": "mpmarketing - India's Trusted Marketplace for Buying & Selling by Evolucentsphere Pvt Ltd",
+    "description": "MP MARKET - India's Trusted Marketplace for Buying & Selling by Evolucentsphere Pvt Ltd",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mpmarketing",
+    "scheme": "mpmarket",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -27,7 +27,11 @@
         "backgroundColor": "#002F34"
       },
       "package": "com.evolucentsphere.mpmarketing",
-      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -35,9 +39,19 @@
       "favicon": "./assets/images/favicon.png",
       "backgroundColor": "#ffffff"
     },
-    "plugins": ["expo-router", "expo-font", "expo-web-browser"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-web-browser"
+    ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d8845a67-9286-4c64-be63-24ec4c6076ea"
+      }
     }
   }
 }

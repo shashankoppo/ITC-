@@ -20,7 +20,7 @@ import {
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { supabase } from '@/lib/supabase';
+import { productApi, favoriteApi, messageApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Product } from '@/types/database';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
@@ -43,54 +43,57 @@ export default function ProductDetailScreen() {
 
   const loadProduct = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, profiles(*), categories(*)')
-        .eq('id', id)
-        .single();
+      const data = await productApi.getProductById(id as string);
+      setProduct(data);
 
-      if (error || !data) {
-        // Find in mock data
-        const mockProduct = MOCK_PRODUCTS.find(p => p.id === id);
-        if (mockProduct) {
-          setProduct(mockProduct as any);
-        } else {
-          throw new Error('Product not found');
-        }
-      } else {
-        setProduct(data);
-      }
-
-      // Check favorite status (simulated or real)
       if (user) {
-        try {
-          const { data: favData } = await supabase
-            .from('favorites')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('product_id', id)
-            .maybeSingle();
-          setIsFavorite(!!favData);
-        } catch {
-          setIsFavorite(Math.random() > 0.8);
-        }
+        const favorite = await favoriteApi.isFavorite(user.id, id as string);
+        setIsFavorite(favorite);
       }
     } catch (error) {
       console.error('Error loading product:', error);
-      // Fallback to mock data if any mock id is provided
       const mockProduct = MOCK_PRODUCTS.find(p => p.id === id);
-      if (mockProduct) {
-        setProduct(mockProduct as any);
-      }
+      if (mockProduct) setProduct(mockProduct as any);
     } finally {
       setLoading(false);
     }
   };
 
   const handleFavorite = async () => {
+    if (!user) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setIsFavorite(!isFavorite);
-    // Real toggle logic would go here
+    
+    try {
+      if (isFavorite) {
+        await favoriteApi.removeFavorite(user.id, id as string);
+      } else {
+        await favoriteApi.addFavorite(user.id, id as string);
+      }
+      setIsFavorite(!isFavorite);
+    } catch (error) {
+      console.error('Favorite toggle failed:', error);
+    }
+  };
+  const handleChat = async () => {
+    if (!user) {
+      router.push('/(auth)/login');
+      return;
+    }
+
+    if (!product) return;
+
+    try {
+      // Check if conversation already exists or create new one
+      const conversation = await messageApi.createConversation(
+        product.id,
+        user.id,
+        product.user_id
+      );
+      router.push(`/conversation/${conversation.id}`);
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      Alert.alert('Chat Error', 'Could not start conversation with seller.');
+    }
   };
 
   const timeAgo = (date: string) => {
@@ -296,7 +299,7 @@ export default function ProductDetailScreen() {
           <View style={styles.footerInner}>
             <TouchableOpacity 
               style={[styles.footerBtn, styles.chatBtn]}
-              onPress={() => router.push('/conversation/new')}
+              onPress={handleChat}
             >
               <MessageCircle size={20} color={COLORS.primary} strokeWidth={2.5} />
               <Text style={styles.chatBtnText}>Chat now</Text>

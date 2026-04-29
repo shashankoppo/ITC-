@@ -17,7 +17,7 @@ export function AdBanner({ type, onPress }: AdBannerProps) {
               <Zap size={12} color={COLORS.primary} fill={COLORS.primary} />
               <Text style={styles.premiumBadgeText}>PREMIUM AD</Text>
             </View>
-            <Text style={styles.premiumTitle}>Sell Faster on mpmarketing!</Text>
+            <Text style={styles.premiumTitle}>Sell Faster on SellAdv.com!</Text>
             <Text style={styles.premiumDesc}>Boost your listing with Premium visibility across India</Text>
             <View style={styles.premiumCTA}>
               <Text style={styles.premiumCTAText}>Boost Now — ₹499</Text>

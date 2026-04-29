@@ -1,22 +1,22 @@
-// Demo Data for MP Marketing
+// Demo Data for SellAdv.com
 // Created by Evolucentsphere Private Limited
 
 export const DEMO_CREDENTIALS = {
   // Test Buyer Account
   buyer: {
-    email: 'buyer@demo.mpmarketing.com',
+    email: 'buyer@demo.selladv.com',
     password: 'DemoPass@123',
     name: 'John Buyer'
   },
   // Test Seller Account
   seller: {
-    email: 'seller@demo.mpmarketing.com',
+    email: 'seller@demo.selladv.com',
     password: 'DemoPass@123',
     name: 'Sarah Seller'
   },
   // Admin Account
   admin: {
-    email: 'admin@demo.mpmarketing.com',
+    email: 'admin@demo.selladv.com',
     password: 'AdminPass@123',
     name: 'Admin User'
   }
@@ -177,35 +177,35 @@ export const DEMO_PRODUCTS = [
 
 export const DEMO_USERS = [
   {
-    email: 'buyer@demo.mpmarketing.com',
+    email: 'buyer@demo.selladv.com',
     full_name: 'John Buyer',
     location: 'New York, NY',
     bio: 'Always looking for great deals!',
     is_admin: false
   },
   {
-    email: 'seller@demo.mpmarketing.com',
+    email: 'seller@demo.selladv.com',
     full_name: 'Sarah Seller',
     location: 'San Francisco, CA',
     bio: 'Quality products at fair prices',
     is_admin: false
   },
   {
-    email: 'admin@demo.mpmarketing.com',
+    email: 'admin@demo.selladv.com',
     full_name: 'Admin User',
     location: 'New York, NY',
     bio: 'Platform administrator',
     is_admin: true
   },
   {
-    email: 'alice.johnson@demo.mpmarketing.com',
+    email: 'alice.johnson@demo.selladv.com',
     full_name: 'Alice Johnson',
     location: 'Los Angeles, CA',
     bio: 'Loves vintage items',
     is_admin: false
   },
   {
-    email: 'bob.smith@demo.mpmarketing.com',
+    email: 'bob.smith@demo.selladv.com',
     full_name: 'Bob Smith',
     location: 'Chicago, IL',
     bio: 'Tech enthusiast',
@@ -217,19 +217,19 @@ export const DEMO_REVIEWS = [
   {
     rating: 5,
     comment: 'Great seller! Fast shipping and item exactly as described.',
-    reviewer_email: 'buyer@demo.mpmarketing.com',
-    reviewee_email: 'seller@demo.mpmarketing.com'
+    reviewer_email: 'buyer@demo.selladv.com',
+    reviewee_email: 'seller@demo.selladv.com'
   },
   {
     rating: 4,
     comment: 'Good communication. Product arrived in good condition.',
-    reviewer_email: 'alice.johnson@demo.mpmarketing.com',
-    reviewee_email: 'sarah.seller@demo.mpmarketing.com'
+    reviewer_email: 'alice.johnson@demo.selladv.com',
+    reviewee_email: 'sarah.seller@demo.selladv.com'
   },
   {
     rating: 5,
     comment: 'Excellent transaction. Highly recommended!',
-    reviewer_email: 'bob.smith@demo.mpmarketing.com',
-    reviewee_email: 'seller@demo.mpmarketing.com'
+    reviewer_email: 'bob.smith@demo.selladv.com',
+    reviewee_email: 'seller@demo.selladv.com'
   }
 ];

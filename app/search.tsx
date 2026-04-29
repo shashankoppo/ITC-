@@ -95,7 +95,7 @@ export default function SearchScreen() {
         <View style={styles.searchBar}>
           <SearchIcon size={18} color={COLORS.textLight} />
           <TextInput 
-            placeholder="Search mpmarketing..." 
+            placeholder="Search SellAdv.com..." 
             style={styles.searchInput}
             value={query}
             onChangeText={setQuery}

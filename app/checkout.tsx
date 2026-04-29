@@ -55,7 +55,7 @@ export default function CheckoutScreen() {
           <Text style={styles.successTitle}>Payment Successful!</Text>
           <Text style={styles.successDesc}>
             Your listing has been upgraded to <Text style={{fontWeight: '700'}}>{tier}</Text> tier.
-            It will now receive more visibility across mpmarketing.
+            It will now receive more visibility across SellAdv.com.
           </Text>
           <TouchableOpacity
             style={styles.doneBtn}
@@ -100,7 +100,7 @@ export default function CheckoutScreen() {
             </View>
             <View style={styles.secureBadge}>
               <ShieldCheck size={14} color={COLORS.success} />
-              <Text style={styles.secureText}>Secure Payment via mpmarketing Pay</Text>
+              <Text style={styles.secureText}>Secure Payment via SellAdv.com Pay</Text>
             </View>
           </View>
         </View>

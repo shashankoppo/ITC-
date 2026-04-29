@@ -28,7 +28,7 @@ export function ProductCard({ product, onFavoriteToggle, isFavorite }: ProductCa
 
   const imageUrl = product.images && product.images.length > 0
     ? product.images[0]
-    : 'https://images.pexels.com/photos/1029243/pexels-photo-1029243.jpeg?auto=compress&cs=tinysrgb&w=400';
+    : 'https://picsum.photos/seed/fallback/400/400';
 
   const timeAgo = () => {
     const seconds = Math.floor((new Date().getTime() - new Date(product.created_at).getTime()) / 1000);

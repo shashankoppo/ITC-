@@ -15,6 +15,9 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Product, Category } from '@/types/database';
 import { ProductCard } from '@/components/ProductCard';
+import { productApi, categoryApi } from '@/lib/api';
+import { useLocation } from '@/contexts/LocationContext';
+import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 export default function CategoryScreen() {
   const router = useRouter();
@@ -28,13 +31,15 @@ export default function CategoryScreen() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
+  const { selectedCity } = useLocation();
+  const [loadingMore, setLoadingMore] = useState(false);
   const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
     if (slug) {
-      loadCategoryAndProducts();
+      loadInitialData();
     }
-  }, [slug]);
+  }, [slug, selectedCity]);
 
   useEffect(() => {
     if (user) {
@@ -42,36 +47,34 @@ export default function CategoryScreen() {
     }
   }, [user]);
 
-  const loadCategoryAndProducts = async () => {
+  const loadInitialData = async () => {
+    setLoading(true);
     try {
-      const { data: catData, error: catError } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('slug', slug)
-        .single();
-
-      if (catError) throw catError;
+      const catData = await categoryApi.getCategoryBySlug(slug as string);
+      if (!catData) throw new Error('Category not found');
       setCategory(catData);
-
-      const from = 0;
-      const to = ITEMS_PER_PAGE - 1;
-
-      const { data: prodData, error: prodError } = await supabase
-        .from('products')
-        .select('*, profiles(*), categories(*)')
-        .eq('category_id', catData.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (prodError) throw prodError;
-      setProducts(prodData || []);
-      setHasMore((prodData?.length || 0) === ITEMS_PER_PAGE);
-      setPage(0);
+      await loadProducts(catData.id, 0, true);
     } catch (error) {
-      console.error('Error loading category:', error);
+      console.error('Error loading initial category data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadProducts = async (catId: string, pageNum: number, reset: boolean = false) => {
+    try {
+      const data = await productApi.getProductsByCategory(catId, pageNum, ITEMS_PER_PAGE, selectedCity);
+      
+      if (reset) {
+        setProducts(data);
+      } else {
+        setProducts((prev) => [...prev, ...data]);
+      }
+      
+      setHasMore(data.length === ITEMS_PER_PAGE);
+      setPage(pageNum);
+    } catch (error) {
+      console.error('Error loading products for category:', error);
     }
   };
 
@@ -114,23 +117,10 @@ export default function CategoryScreen() {
   };
 
   const loadMore = () => {
-    if (!hasMore || loading) return;
+    if (!hasMore || loading || loadingMore || !category) return;
 
-    const from = (page + 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
-
-    supabase
-      .from('products')
-      .select('*, profiles(*), categories(*)')
-      .eq('category_id', category?.id)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .range(from, to)
-      .then(({ data }) => {
-        setProducts((prev) => [...prev, ...(data || [])]);
-        setHasMore((data?.length || 0) === ITEMS_PER_PAGE);
-        setPage((prev) => prev + 1);
-      });
+    setLoadingMore(true);
+    loadProducts(category.id, page + 1).finally(() => setLoadingMore(false));
   };
 
   const renderItem = ({ item }: { item: Product }) => (

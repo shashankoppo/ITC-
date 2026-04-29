@@ -1,20 +1,56 @@
 import { supabase } from './supabase';
 import { Product, Review } from '@/types/database';
+import { API_CONFIG, handleApiError } from './api_config';
+import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_CONVERSATIONS, MOCK_MESSAGES, MOCK_FAVORITES } from './mockData';
 
 export const productApi = {
-  async getProducts(page: number = 0, limit: number = 12) {
-    const from = page * limit;
-    const to = from + limit - 1;
+  async getProducts(page: number = 0, limit: number = 12, location: string = 'India', sortBy: string = 'newest') {
+    let filteredProducts = [...MOCK_PRODUCTS];
+    if (location !== 'India') {
+      filteredProducts = filteredProducts.filter(p => 
+        p.location?.toLowerCase().includes(location.toLowerCase())
+      );
+    }
 
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, profiles(*), categories(*)')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .range(from, to);
+    // Apply sorting
+    if (sortBy === 'price_low') {
+      filteredProducts.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price_high') {
+      filteredProducts.sort((a, b) => b.price - a.price);
+    } else {
+      filteredProducts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
 
-    if (error) throw error;
-    return data;
+    if (API_CONFIG.useMockData) return filteredProducts.slice(page * limit, (page + 1) * limit);
+
+    try {
+      const from = page * limit;
+      const to = from + limit - 1;
+
+      let query = supabase
+        .from('products')
+        .select('*, profiles(*), categories(*)')
+        .eq('status', 'active');
+      
+      if (location !== 'India') {
+        query = query.ilike('location', `%${location}%`);
+      }
+
+      if (sortBy === 'price_low') {
+        query = query.order('price', { ascending: true });
+      } else if (sortBy === 'price_high') {
+        query = query.order('price', { ascending: false });
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
+
+      const { data, error } = await query.range(from, to);
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return handleApiError(error, filteredProducts.slice(page * limit, (page + 1) * limit));
+    }
   },
 
   async getProductById(id: string) {
@@ -28,15 +64,30 @@ export const productApi = {
     return data;
   },
 
-  async getProductsByCategory(categoryId: string, page: number = 0, limit: number = 12) {
+  async getProductsByCategory(categoryId: string, page: number = 0, limit: number = 12, location: string = 'India') {
+    let filteredProducts = MOCK_PRODUCTS.filter(p => p.category_id === categoryId);
+    if (location !== 'India') {
+      filteredProducts = filteredProducts.filter(p => 
+        p.location?.toLowerCase().includes(location.toLowerCase())
+      );
+    }
+
+    if (API_CONFIG.useMockData) return filteredProducts.slice(page * limit, (page + 1) * limit);
+
     const from = page * limit;
     const to = from + limit - 1;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('products')
       .select('*, profiles(*), categories(*)')
       .eq('category_id', categoryId)
-      .eq('status', 'active')
+      .eq('status', 'active');
+    
+    if (location !== 'India') {
+      query = query.ilike('location', `%${location}%`);
+    }
+
+    const { data, error } = await query
       .order('created_at', { ascending: false })
       .range(from, to);
 
@@ -45,6 +96,10 @@ export const productApi = {
   },
 
   async getUserProducts(userId: string) {
+    if (API_CONFIG.useMockData) {
+      return MOCK_PRODUCTS.filter(p => p.user_id === userId || p.user_id === 'u1'); // u1 is default mock user
+    }
+
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -55,15 +110,67 @@ export const productApi = {
     return data;
   },
 
-  async createProduct(product: Partial<Product>) {
+  async createProduct(product: Partial<Product>, imageUris?: string[]) {
+    if (API_CONFIG.useMockData) {
+      const newProduct = {
+        ...product,
+        id: `prod_${Date.now()}`,
+        created_at: new Date().toISOString(),
+        views_count: 0,
+        images: imageUris || [
+          'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=800'
+        ],
+      };
+      MOCK_PRODUCTS.unshift(newProduct as any);
+      return newProduct;
+    }
+
+    let images: string[] = [];
+    
+    // Upload images if provided
+    if (imageUris && imageUris.length > 0) {
+      const uploadPromises = imageUris.map(uri => this.uploadImage(uri));
+      images = await Promise.all(uploadPromises);
+    }
+
     const { data, error } = await supabase
       .from('products')
-      .insert(product)
+      .insert({ ...product, images: images.length > 0 ? images : product.images })
       .select()
       .single();
 
     if (error) throw error;
     return data;
+  },
+
+  async uploadImage(uri: string): Promise<string> {
+    try {
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+      const filePath = `product-images/${fileName}`;
+
+      // This is a simplified version. In a real app, you'd convert the URI to a Blob/File
+      // For now, we'll assume the URI is a local path and handle the upload
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const { data, error } = await supabase.storage
+        .from('products')
+        .upload(filePath, blob, {
+          contentType: 'image/jpeg',
+          upsert: true
+        });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      throw new Error('Image upload failed');
+    }
   },
 
   async updateProduct(id: string, updates: Partial<Product>) {
@@ -79,6 +186,14 @@ export const productApi = {
   },
 
   async deleteProduct(id: string) {
+    if (API_CONFIG.useMockData) {
+      const index = MOCK_PRODUCTS.findIndex(p => p.id === id);
+      if (index > -1) {
+        MOCK_PRODUCTS.splice(index, 1);
+      }
+      return;
+    }
+
     const { error } = await supabase
       .from('products')
       .delete()
@@ -105,21 +220,97 @@ export const productApi = {
     return newCount;
   },
 
-  async searchProducts(query: string, limit: number = 20) {
-    const { data, error } = await supabase
+  async searchProducts(query: string, limit: number = 20, location: string = 'India', sortBy: string = 'newest') {
+    if (API_CONFIG.useMockData) {
+      const q = query.toLowerCase();
+      let filtered = MOCK_PRODUCTS.filter(p => 
+        p.title.toLowerCase().includes(q) || 
+        p.description.toLowerCase().includes(q)
+      );
+
+      if (location !== 'India') {
+        filtered = filtered.filter(p => 
+          p.location?.toLowerCase().includes(location.toLowerCase())
+        );
+      }
+
+      if (sortBy === 'price_low') {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (sortBy === 'price_high') {
+        filtered.sort((a, b) => b.price - a.price);
+      } else {
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      }
+      
+      return filtered.slice(0, limit);
+    }
+
+    let sbQuery = supabase
       .from('products')
       .select('*, profiles(*), categories(*)')
       .eq('status', 'active')
-      .ilike('title', `%${query}%`)
-      .limit(limit);
+      .ilike('title', `%${query}%`);
+
+    if (location !== 'India') {
+      sbQuery = sbQuery.ilike('location', `%${location}%`);
+    }
+
+    if (sortBy === 'price_low') {
+      sbQuery = sbQuery.order('price', { ascending: true });
+    } else if (sortBy === 'price_high') {
+      sbQuery = sbQuery.order('price', { ascending: false });
+    } else {
+      sbQuery = sbQuery.order('created_at', { ascending: false });
+    }
+
+    const { data, error } = await sbQuery.limit(limit);
 
     if (error) throw error;
     return data;
+  },
+
+  async getPremiumProducts(limit: number = 10, location: string = 'India') {
+    let filteredProducts = MOCK_PRODUCTS.filter(p => p.tier === 'premium');
+    if (location !== 'India') {
+      filteredProducts = filteredProducts.filter(p => 
+        p.location?.toLowerCase().includes(location.toLowerCase())
+      );
+    }
+
+    if (API_CONFIG.useMockData) return filteredProducts.slice(0, limit);
+
+    try {
+      let query = supabase
+        .from('products')
+        .select('*, profiles(*), categories(*)')
+        .eq('status', 'active')
+        .eq('tier', 'premium');
+      
+      if (location !== 'India') {
+        query = query.ilike('location', `%${location}%`);
+      }
+
+      const { data, error } = await query
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      return handleApiError(error, filteredProducts.slice(0, limit));
+    }
   },
 };
 
 export const favoriteApi = {
   async addFavorite(userId: string, productId: string) {
+    if (API_CONFIG.useMockData) {
+      if (!MOCK_FAVORITES.includes(productId)) {
+        MOCK_FAVORITES.push(productId);
+      }
+      return;
+    }
+
     const { error } = await supabase
       .from('favorites')
       .insert({ user_id: userId, product_id: productId });
@@ -128,6 +319,14 @@ export const favoriteApi = {
   },
 
   async removeFavorite(userId: string, productId: string) {
+    if (API_CONFIG.useMockData) {
+      const index = MOCK_FAVORITES.indexOf(productId);
+      if (index > -1) {
+        MOCK_FAVORITES.splice(index, 1);
+      }
+      return;
+    }
+
     const { error } = await supabase
       .from('favorites')
       .delete()
@@ -138,6 +337,14 @@ export const favoriteApi = {
   },
 
   async getUserFavorites(userId: string) {
+    if (API_CONFIG.useMockData) {
+      return MOCK_PRODUCTS.filter(p => MOCK_FAVORITES.includes(p.id)).map(p => ({
+        id: `fav_${p.id}`,
+        product_id: p.id,
+        products: p
+      }));
+    }
+
     const { data, error } = await supabase
       .from('favorites')
       .select('*, products(*, profiles(*), categories(*))')
@@ -148,6 +355,8 @@ export const favoriteApi = {
   },
 
   async isFavorite(userId: string, productId: string) {
+    if (API_CONFIG.useMockData) return MOCK_FAVORITES.includes(productId);
+
     const { data, error } = await supabase
       .from('favorites')
       .select('id')
@@ -162,6 +371,8 @@ export const favoriteApi = {
 
 export const messageApi = {
   async getConversations(userId: string) {
+    if (API_CONFIG.useMockData) return MOCK_CONVERSATIONS;
+
     const { data, error } = await supabase
       .from('conversations')
       .select(`
@@ -178,6 +389,12 @@ export const messageApi = {
   },
 
   async getConversation(id: string) {
+    if (API_CONFIG.useMockData) {
+      const conv = MOCK_CONVERSATIONS.find(c => c.id === id);
+      if (!conv) throw new Error('Conversation not found');
+      return conv;
+    }
+
     const { data, error } = await supabase
       .from('conversations')
       .select(`
@@ -194,6 +411,28 @@ export const messageApi = {
   },
 
   async createConversation(productId: string, buyerId: string, sellerId: string) {
+    if (API_CONFIG.useMockData) {
+      // Find existing or create new
+      let conv = MOCK_CONVERSATIONS.find(c => c.product_id === productId && c.buyer_id === buyerId);
+      if (conv) return conv;
+
+      const product = MOCK_PRODUCTS.find(p => p.id === productId);
+      
+      conv = {
+        id: `conv_${Date.now()}`,
+        product_id: productId,
+        buyer_id: buyerId,
+        seller_id: sellerId,
+        last_message: '',
+        last_message_at: new Date().toISOString(),
+        unread_count: 0,
+        products: product,
+        seller: { full_name: 'Seller', avatar_url: 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=100' },
+      };
+      MOCK_CONVERSATIONS.unshift(conv);
+      return conv;
+    }
+
     const { data, error } = await supabase
       .from('conversations')
       .insert({
@@ -209,6 +448,8 @@ export const messageApi = {
   },
 
   async getMessages(conversationId: string) {
+    if (API_CONFIG.useMockData) return MOCK_MESSAGES.filter(m => m.conversation_id === conversationId);
+
     const { data, error } = await supabase
       .from('messages')
       .select('*, profiles(*)')
@@ -220,6 +461,19 @@ export const messageApi = {
   },
 
   async sendMessage(conversationId: string, senderId: string, content: string) {
+    if (API_CONFIG.useMockData) {
+      const newMessage = {
+        id: `msg_${Date.now()}`,
+        conversation_id: conversationId,
+        sender_id: senderId,
+        content,
+        created_at: new Date().toISOString(),
+        is_read: false,
+      };
+      MOCK_MESSAGES.push(newMessage);
+      return newMessage;
+    }
+
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -281,14 +535,20 @@ export const reviewApi = {
 
 export const categoryApi = {
   async getAllCategories() {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true });
+    if (API_CONFIG.useMockData) return MOCK_CATEGORIES;
 
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      return handleApiError(error, MOCK_CATEGORIES);
+    }
   },
 
   async getCategoryBySlug(slug: string) {

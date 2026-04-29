@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { Profile } from '@/types/database';
+import { API_CONFIG } from '@/lib/api_config';
+import { MOCK_USERS } from '@/lib/mockData';
 
 interface AuthContextType {
   session: Session | null;
@@ -23,25 +25,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
+    async function initializeAuth() {
+      if (API_CONFIG.useMockData) {
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Auth Hub Connectivity Issue:', error);
         setLoading(false);
       }
-    });
+    }
+
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         (async () => {
-          setSession(session);
-          setUser(session?.user ?? null);
-          if (session?.user) {
-            await fetchProfile(session.user.id);
-          } else {
-            setProfile(null);
+          try {
+            setSession(session);
+            setUser(session?.user ?? null);
+            if (session?.user) {
+              await fetchProfile(session.user.id);
+            } else {
+              setProfile(null);
+              setLoading(false);
+            }
+          } catch (e) {
+            console.error('Auth State Change Error:', e);
             setLoading(false);
           }
         })();
@@ -52,6 +74,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchProfile = async (userId: string) => {
+    if (API_CONFIG.useMockData) {
+      if (userId === MOCK_USERS[0].id) {
+        setProfile(MOCK_USERS[0]);
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -75,6 +105,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    if (API_CONFIG.useMockData) {
+      if (email === 'test@example.com' && password === 'password123') {
+        const mockUser = { id: MOCK_USERS[0].id, email } as User;
+        const mockSession = { user: mockUser, access_token: 'mock', refresh_token: 'mock' } as Session;
+        setSession(mockSession);
+        setUser(mockUser);
+        setProfile(MOCK_USERS[0]);
+        return;
+      }
+      throw new Error('Invalid mock credentials. Use test@example.com / password123');
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -83,6 +125,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
+    if (API_CONFIG.useMockData) {
+      throw new Error('Sign up not available in mock mode. Please use existing mock credentials.');
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -99,6 +145,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    if (API_CONFIG.useMockData) {
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+      return;
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };

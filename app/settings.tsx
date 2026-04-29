@@ -144,7 +144,7 @@ export default function SettingsScreen() {
         </View>
         <View style={styles.section}>
           <SettingItem icon={HelpCircle} label="Help & FAQ Centre" color={COLORS.info} />
-          <SettingItem icon={Info} label="About mpmarketing" color="#64748B" />
+          <SettingItem icon={Info} label="About SellAdv.com" color="#64748B" />
           <SettingItem icon={Shield} label="Privacy Policy" color="#64748B" />
           <SettingItem 
             icon={Lock} 
@@ -172,7 +172,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.versionText}>mpmarketing for India — v1.2.4</Text>
+          <Text style={styles.versionText}>SellAdv.com for India — v1.2.4</Text>
           <Text style={styles.buildText}>Elite Marketplace Edition</Text>
         </View>
       </ScrollView>

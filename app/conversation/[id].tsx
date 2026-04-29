@@ -16,6 +16,8 @@ import { ArrowLeft, Send } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Message, Conversation } from '@/types/database';
+import { messageApi } from '@/lib/api';
+import { API_CONFIG } from '@/lib/api_config';
 
 export default function ConversationScreen() {
   const router = useRouter();
@@ -46,18 +48,7 @@ export default function ConversationScreen() {
 
   const loadConversation = async () => {
     try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select(`
-          *,
-          products(*),
-          buyer:profiles!conversations_buyer_id_fkey(*),
-          seller:profiles!conversations_seller_id_fkey(*)
-        `)
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
+      const data = await messageApi.getConversation(id as string);
       setConversation(data);
     } catch (error) {
       console.error('Error loading conversation:', error);
@@ -68,13 +59,7 @@ export default function ConversationScreen() {
 
   const loadMessages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*, profiles(*)')
-        .eq('conversation_id', id)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
+      const data = await messageApi.getMessages(id as string);
       setMessages(data || []);
 
       setTimeout(() => {
@@ -86,6 +71,8 @@ export default function ConversationScreen() {
   };
 
   const subscribeToMessages = () => {
+    if (API_CONFIG.useMockData) return;
+
     const subscription = supabase
       .channel(`messages-${id}`)
       .on(
@@ -109,16 +96,12 @@ export default function ConversationScreen() {
   const handleSendMessage = async () => {
     if (!inputText.trim() || !user) return;
 
-    setSending(true);
     try {
-      const { error } = await supabase.from('messages').insert({
-        conversation_id: id,
-        sender_id: user.id,
-        content: inputText,
-        is_read: false,
-      });
-
-      if (error) throw error;
+      await messageApi.sendMessage(id as string, user.id, inputText);
+      if (API_CONFIG.useMockData) {
+        // In mock mode we need to manually reload messages
+        loadMessages();
+      }
       setInputText('');
     } catch (error) {
       console.error('Error sending message:', error);

@@ -58,7 +58,7 @@ export default function SignupScreen() {
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.logo}>mpmarketing</Text>
+            <Text style={styles.logo}>SellAdv.com</Text>
             <Text style={styles.tagline}>India's trusted marketplace</Text>
           </View>
 

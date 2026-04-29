@@ -18,11 +18,11 @@ import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 const FAQs = [
   {
-    question: "How do I post an ad on mpmarketing?",
+    question: "How do I post an ad on SellAdv.com?",
     answer: "Tap on the yellow '+' Sell button in the bottom navigation bar. Choose a category, add photos, description, and price, then tap 'Post Listing'."
   },
   {
-    question: "Is it free to sell on mpmarketing?",
+    question: "Is it free to sell on SellAdv.com?",
     answer: "Yes! Posting regular ads is completely free. We only charge for premium ad boosts which help your items sell 10x faster."
   },
   {
@@ -119,7 +119,7 @@ export default function HelpScreen() {
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>© 2026 mpmarketing Marketplace</Text>
+          <Text style={styles.footerText}>© 2026 SellAdv.com Marketplace</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

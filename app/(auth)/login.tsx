@@ -47,7 +47,7 @@ export default function LoginScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.logo}>mpmarketing</Text>
+            <Text style={styles.logo}>SellAdv.com</Text>
             <Text style={styles.tagline}>Buy & Sell across India</Text>
           </View>
 
