@@ -4,18 +4,39 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, ShieldCheck, Camera, Upload, CheckCircle2, AlertCircle, User } from 'lucide-react-native';
 import { useState } from 'react';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
+import { userApi } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function VerificationScreen() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const { user, refreshProfile } = useAuth();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      Alert.alert('Verification Submitted', 'Your documents are being reviewed. This usually takes 24-48 hours.', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      if (!user) {
+        Alert.alert('Error', 'You must be logged in to verify.');
+        return;
+      }
+      
+      setSubmitting(true);
+      try {
+        await userApi.verifyUser(user.id);
+        if (refreshProfile) {
+            await refreshProfile();
+        }
+        Alert.alert('Verification Submitted', 'Your documents are being reviewed. This usually takes 24-48 hours.', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      } catch (error) {
+        console.error('Error submitting verification:', error);
+        Alert.alert('Error', 'There was a problem submitting your verification. Please try again.');
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -109,8 +130,8 @@ export default function VerificationScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-          <Text style={styles.nextBtnText}>{step === 3 ? 'Submit for Review' : 'Continue'}</Text>
+        <TouchableOpacity style={[styles.nextBtn, submitting && { opacity: 0.7 }]} onPress={handleNext} disabled={submitting}>
+          <Text style={styles.nextBtnText}>{submitting ? 'Submitting...' : step === 3 ? 'Submit for Review' : 'Continue'}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

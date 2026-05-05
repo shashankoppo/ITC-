@@ -5,17 +5,18 @@ const now = new Date().toISOString();
 export const MOCK_USERS: Profile[] = [
   {
     id: 'mock-user-1',
-    full_name: 'Test User',
-    avatar_url: 'https://picsum.photos/seed/1145/800/600',
+    full_name: 'Rahul Kapoor',
+    avatar_url: 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg',
     phone: '+91 9876543210',
-    location: 'Mumbai, India',
-    bio: 'Avid buyer and seller on SellAdv.com.',
+    location: 'Mumbai, Maharashtra',
+    bio: 'Premium seller on SellAdv.com. Selling verified and quality products.',
     is_admin: false,
-    rating: 4.8,
-    total_reviews: 12,
-    active_listings_count: 5,
-    favorites_count: 2,
-    views_count: 1500,
+    rating: 4.9,
+    total_reviews: 42,
+    active_listings_count: 24,
+    favorites_count: 5,
+    views_count: 15400,
+    is_verified: true,
     created_at: now,
     updated_at: now,
   }
@@ -37,7 +38,7 @@ export const MOCK_CATEGORIES: Category[] = [
 export const MOCK_PRODUCTS: Product[] = [
   // --- PROPERTIES (Category 6) ---
   {
-    id: 'p1', user_id: 'u4', category_id: '6',
+    id: 'p1', user_id: 'mock-user-1', category_id: '6',
     title: 'Luxury 3BHK Apartment - Sea View For Rent',
     description: 'Spacious 2400 sq.ft 3BHK with modern amenities. Gym, Swimming pool. Perfect for families looking to rent in a prime location in Mumbai.',
     price: 85000, currency: 'INR', condition: 'like_new',
@@ -47,7 +48,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 86400000).toISOString(), updated_at: now,
   },
   {
-    id: 'p2', user_id: 'u4', category_id: '6',
+    id: 'p2', user_id: 'mock-user-1', category_id: '6',
     title: 'Independent Villa For Sale',
     description: '4 Bedroom independent villa with private garden and 2 car parking spots.',
     price: 45000000, currency: 'INR', condition: 'new',
@@ -57,7 +58,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 186400000).toISOString(), updated_at: now,
   },
   {
-    id: 'p3', user_id: 'u4', category_id: '6',
+    id: 'p3', user_id: 'mock-user-1', category_id: '6',
     title: 'Cozy 1BHK Flat for Rent',
     description: 'Perfect for bachelors or young couples. Fully furnished, near metro station.',
     price: 25000, currency: 'INR', condition: 'good',
@@ -67,7 +68,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 36400000).toISOString(), updated_at: now,
   },
   {
-    id: 'p4', user_id: 'u4', category_id: '6',
+    id: 'p4', user_id: 'mock-user-1', category_id: '6',
     title: 'Commercial Office Space - 5000 sqft',
     description: 'Prime commercial location, high-speed elevators, 100% power backup.',
     price: 350000, currency: 'INR', condition: 'new',
@@ -77,7 +78,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 286400000).toISOString(), updated_at: now,
   },
   {
-    id: 'p5', user_id: 'u4', category_id: '6',
+    id: 'p5', user_id: 'mock-user-1', category_id: '6',
     title: 'Studio Apartment for Rent',
     description: 'Fully functional studio, perfect for working professionals.',
     price: 18000, currency: 'INR', condition: 'good',
@@ -89,7 +90,7 @@ export const MOCK_PRODUCTS: Product[] = [
 
   // --- MOBILES (Category 2) ---
   {
-    id: 'm1', user_id: 'u1', category_id: '2',
+    id: 'm1', user_id: 'mock-user-1', category_id: '2',
     title: 'Samsung Galaxy S24 Ultra - 512GB (Titanium Gray)',
     description: 'Perfect condition Galaxy S24 Ultra. Used for only 1 month. Includes original box, bill, and all accessories.',
     price: 92000, currency: 'INR', condition: 'like_new',
@@ -99,7 +100,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: now, updated_at: now,
   },
   {
-    id: 'm2', user_id: 'u3', category_id: '2',
+    id: 'm2', user_id: 'mock-user-1', category_id: '2',
     title: 'Apple iPhone 15 Pro Max 256GB Natural Titanium',
     description: 'Battery health 100%. Comes with Apple Care+ till 2025. Unmatched performance and camera quality.',
     price: 115000, currency: 'INR', condition: 'like_new',
@@ -109,7 +110,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 7200000).toISOString(), updated_at: now,
   },
   {
-    id: 'm3', user_id: 'u12', category_id: '2',
+    id: 'm3', user_id: 'mock-user-1', category_id: '2',
     title: 'Google Pixel 8 Pro - 128GB (Bay Blue)',
     description: 'Mint condition. Incredible AI cameras and smooth Android experience.',
     price: 78000, currency: 'INR', condition: 'like_new',
@@ -119,7 +120,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: now, updated_at: now,
   },
   {
-    id: 'm4', user_id: 'u1', category_id: '2',
+    id: 'm4', user_id: 'mock-user-1', category_id: '2',
     title: 'OnePlus 12 16GB RAM 512GB Storage',
     description: 'Brand new sealed box. Received as a gift, selling because I prefer iOS.',
     price: 68000, currency: 'INR', condition: 'new',
@@ -129,7 +130,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 17200000).toISOString(), updated_at: now,
   },
   {
-    id: 'm5', user_id: 'u2', category_id: '2',
+    id: 'm5', user_id: 'mock-user-1', category_id: '2',
     title: 'iPad Pro M2 11-inch (WiFi + Cellular)',
     description: 'Pristine condition, with Apple Pencil 2nd gen. Used for digital art.',
     price: 72000, currency: 'INR', condition: 'like_new',
@@ -139,7 +140,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 25200000).toISOString(), updated_at: now,
   },
   {
-    id: 'm6', user_id: 'u3', category_id: '2',
+    id: 'm6', user_id: 'mock-user-1', category_id: '2',
     title: 'Nothing Phone (2) - 12/256GB White',
     description: 'Unique design, Glyph interface, smooth software.',
     price: 32000, currency: 'INR', condition: 'good',
@@ -151,7 +152,7 @@ export const MOCK_PRODUCTS: Product[] = [
 
   // --- CARS (Category 1) ---
   {
-    id: 'c1', user_id: 'u2', category_id: '1',
+    id: 'c1', user_id: 'mock-user-1', category_id: '1',
     title: 'BMW 3 Series 330i M Sport - 2022 Model',
     description: 'Single owner, only 8,500 kms driven. Under warranty and insurance. Showroom condition.',
     price: 4850000, currency: 'INR', condition: 'like_new',
@@ -161,7 +162,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 3600000).toISOString(), updated_at: now,
   },
   {
-    id: 'c2', user_id: 'u2', category_id: '1',
+    id: 'c2', user_id: 'mock-user-1', category_id: '1',
     title: 'Hyundai Creta SX(O) Diesel Automatic - 2021',
     description: 'Well maintained, full service history from Hyundai. Panoramic sunroof, ventilated seats.',
     price: 1650000, currency: 'INR', condition: 'good',
@@ -171,7 +172,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 8600000).toISOString(), updated_at: now,
   },
   {
-    id: 'c3', user_id: 'u2', category_id: '1',
+    id: 'c3', user_id: 'mock-user-1', category_id: '1',
     title: 'Honda City ZX CVT - 2020 (Top End)',
     description: 'I-VTEC engine, automatic transmission, lane watch camera.',
     price: 1125000, currency: 'INR', condition: 'good',
@@ -181,7 +182,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 15600000).toISOString(), updated_at: now,
   },
   {
-    id: 'c4', user_id: 'u2', category_id: '1',
+    id: 'c4', user_id: 'mock-user-1', category_id: '1',
     title: 'Tata Harrier XZA+ Dark Edition - 2023',
     description: 'Latest model, ADAS features, only 5,000 kms done. Showroom condition.',
     price: 2250000, currency: 'INR', condition: 'new',
@@ -193,7 +194,7 @@ export const MOCK_PRODUCTS: Product[] = [
 
   // --- BIKES (Category 3) ---
   {
-    id: 'b1', user_id: 'u5', category_id: '3',
+    id: 'b1', user_id: 'mock-user-1', category_id: '3',
     title: 'Royal Enfield Interceptor 650 (Baker Express)',
     description: '2021 model, sparingly used. Aftermarket exhaust and touring seat added. Perfect for long rides.',
     price: 245000, currency: 'INR', condition: 'good',
@@ -203,7 +204,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 172800000).toISOString(), updated_at: now,
   },
   {
-    id: 'b2', user_id: 'u5', category_id: '3',
+    id: 'b2', user_id: 'mock-user-1', category_id: '3',
     title: 'KTM Duke 390 BS6',
     description: 'TFT Display, quickshifter enabled. Serviced last week, new Pirelli tires.',
     price: 210000, currency: 'INR', condition: 'good',
@@ -213,7 +214,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 472800000).toISOString(), updated_at: now,
   },
   {
-    id: 'b3', user_id: 'u5', category_id: '3',
+    id: 'b3', user_id: 'mock-user-1', category_id: '3',
     title: 'TVS Apache RR 310 - 2022',
     description: 'Race tuned slipper clutch, multiple riding modes. Extremely well maintained.',
     price: 230000, currency: 'INR', condition: 'like_new',
@@ -225,7 +226,7 @@ export const MOCK_PRODUCTS: Product[] = [
 
   // --- ELECTRONICS (Category 4) ---
   {
-    id: 'e1', user_id: 'u6', category_id: '4',
+    id: 'e1', user_id: 'mock-user-1', category_id: '4',
     title: 'Sony PlayStation 5 Disc Edition with 2 Controllers',
     description: 'Includes God of War and Spider-Man 2 games. 6 months warranty remaining.',
     price: 42000, currency: 'INR', condition: 'like_new',
@@ -235,7 +236,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 259200000).toISOString(), updated_at: now,
   },
   {
-    id: 'e2', user_id: 'u7', category_id: '4',
+    id: 'e2', user_id: 'mock-user-1', category_id: '4',
     title: 'MacBook Pro 14" M3 Pro Chip - 18GB/512GB',
     description: 'Space Black. Seal pack, international warranty.',
     price: 185000, currency: 'INR', condition: 'new',
@@ -245,7 +246,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 345600000).toISOString(), updated_at: now,
   },
   {
-    id: 'e3', user_id: 'u6', category_id: '4',
+    id: 'e3', user_id: 'mock-user-1', category_id: '4',
     title: 'Dell XPS 15 - Core i7, 32GB RAM, 1TB SSD',
     description: 'High performance laptop for video editing and programming.',
     price: 125000, currency: 'INR', condition: 'like_new',
@@ -255,7 +256,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: now, updated_at: now,
   },
   {
-    id: 'e4', user_id: 'u6', category_id: '4',
+    id: 'e4', user_id: 'mock-user-1', category_id: '4',
     title: 'Sony WH-1000XM5 Noise Cancelling Headphones',
     description: 'Barely used, 11 months warranty left. Best-in-class noise cancellation.',
     price: 24000, currency: 'INR', condition: 'like_new',
@@ -267,7 +268,7 @@ export const MOCK_PRODUCTS: Product[] = [
 
   // --- FURNITURE (Category 5) ---
   {
-    id: 'f1', user_id: 'u8', category_id: '5',
+    id: 'f1', user_id: 'mock-user-1', category_id: '5',
     title: 'Modern L-Shaped Sofa Set - Pure Leather',
     description: '5 seater beige leather sofa. Extremely comfortable. No tears or stains.',
     price: 45000, currency: 'INR', condition: 'good',
@@ -277,7 +278,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 432000000).toISOString(), updated_at: now,
   },
   {
-    id: 'f2', user_id: 'u8', category_id: '5',
+    id: 'f2', user_id: 'mock-user-1', category_id: '5',
     title: 'Teak Wood Dining Table (6 Seater)',
     description: 'Solid teak wood dining table with 6 cushioned chairs. Excellent finish.',
     price: 28000, currency: 'INR', condition: 'good',
@@ -287,7 +288,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 832000000).toISOString(), updated_at: now,
   },
   {
-    id: 'f3', user_id: 'u8', category_id: '5',
+    id: 'f3', user_id: 'mock-user-1', category_id: '5',
     title: 'King Size Bed with Orthopedic Mattress',
     description: 'Less than a year old, very sturdy build, storage underneath.',
     price: 35000, currency: 'INR', condition: 'good',
@@ -299,7 +300,7 @@ export const MOCK_PRODUCTS: Product[] = [
 
   // --- PETS (Category 8) ---
   {
-    id: 'pt1', user_id: 'u9', category_id: '8',
+    id: 'pt1', user_id: 'mock-user-1', category_id: '8',
     title: 'Golden Retriever Puppies - KCI Registered',
     description: 'Pure breed, vaccinated and dewormed golden retriever puppies. 45 days old.',
     price: 25000, currency: 'INR', condition: 'new',
@@ -309,7 +310,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 10000000).toISOString(), updated_at: now,
   },
   {
-    id: 'pt2', user_id: 'u9', category_id: '8',
+    id: 'pt2', user_id: 'mock-user-1', category_id: '8',
     title: 'British Shorthair Kittens',
     description: 'Adorable blue British Shorthair kittens, litter trained, ready for new home.',
     price: 35000, currency: 'INR', condition: 'new',
@@ -321,7 +322,7 @@ export const MOCK_PRODUCTS: Product[] = [
 
   // --- FASHION (Category 9) ---
   {
-    id: 'fs1', user_id: 'u10', category_id: '9',
+    id: 'fs1', user_id: 'mock-user-1', category_id: '9',
     title: 'Air Jordan 1 High OG "Chicago" - Size 9 UK',
     description: '100% authentic, bought from SNKRS app. Worn twice, 9/10 condition. With OG box.',
     price: 35000, currency: 'INR', condition: 'like_new',
@@ -331,7 +332,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 40000000).toISOString(), updated_at: now,
   },
   {
-    id: 'fs2', user_id: 'u10', category_id: '9',
+    id: 'fs2', user_id: 'mock-user-1', category_id: '9',
     title: 'Rolex Submariner Date (Pre-owned)',
     description: '2019 model, complete set with box and papers. Immaculate condition.',
     price: 1150000, currency: 'INR', condition: 'good',
@@ -343,7 +344,7 @@ export const MOCK_PRODUCTS: Product[] = [
 
   // --- SERVICES (Category 10) ---
   {
-    id: 'sv1', user_id: 'u11', category_id: '10',
+    id: 'sv1', user_id: 'mock-user-1', category_id: '10',
     title: 'Professional Photography Setup & Shoot',
     description: 'Offering portrait and product photography sessions. High end equipment and post-processing included.',
     price: 5000, currency: 'INR', condition: 'new',
@@ -353,7 +354,7 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date(Date.now() - 90000000).toISOString(), updated_at: now,
   },
   {
-    id: 'sv2', user_id: 'u11', category_id: '10',
+    id: 'sv2', user_id: 'mock-user-1', category_id: '10',
     title: 'Expert AC Repair & Servicing',
     description: 'Same day service. Gas filling, deep cleaning, component repair for all brands.',
     price: 499, currency: 'INR', condition: 'new',
@@ -365,7 +366,7 @@ export const MOCK_PRODUCTS: Product[] = [
 
   // --- JOBS (Category 7) ---
   {
-    id: 'j1', user_id: 'u5', category_id: '7',
+    id: 'j1', user_id: 'mock-user-1', category_id: '7',
     title: 'Senior Frontend Developer (React Native)',
     description: 'Looking for an experienced React Native developer with 4+ years of experience. Remote work available.',
     price: 3500000, currency: 'INR', condition: 'new',
@@ -381,7 +382,7 @@ export const MOCK_CONVERSATIONS: any[] = [
     id: 'conv_1',
     product_id: 'p1',
     buyer_id: 'u1',
-    seller_id: 'u2',
+    seller_id: 'mock-user-1',
     last_message: 'Is the price negotiable?',
     last_message_at: new Date(Date.now() - 3600000).toISOString(),
     unread_count: 1,
@@ -392,7 +393,7 @@ export const MOCK_CONVERSATIONS: any[] = [
     id: 'conv_2',
     product_id: 'm1',
     buyer_id: 'u1',
-    seller_id: 'u3',
+    seller_id: 'mock-user-1',
     last_message: 'Can I see more photos?',
     last_message_at: new Date(Date.now() - 86400000).toISOString(),
     unread_count: 0,
@@ -405,24 +406,47 @@ export const MOCK_MESSAGES: any[] = [
   {
     id: 'msg_1',
     conversation_id: 'conv_1',
-    sender_id: 'u1',
+    sender_id: 'mock-user-1',
     content: 'Hi, I am interested in this apartment.',
     created_at: new Date(Date.now() - 7200000).toISOString(),
   },
   {
     id: 'msg_2',
     conversation_id: 'conv_1',
-    sender_id: 'u2',
+    sender_id: 'mock-user-1',
     content: 'Hello! Yes, it is available for viewing tomorrow.',
     created_at: new Date(Date.now() - 5400000).toISOString(),
   },
   {
     id: 'msg_3',
     conversation_id: 'conv_1',
-    sender_id: 'u1',
+    sender_id: 'mock-user-1',
     content: 'Is the price negotiable?',
     created_at: new Date(Date.now() - 3600000).toISOString(),
   }
 ];
 
 export let MOCK_FAVORITES: string[] = ['p1', 'm1', 'e1'];
+
+export const MOCK_REVIEWS: any[] = [
+  {
+    id: 'rev_1',
+    reviewer_id: 'u2',
+    reviewee_id: 'mock-user-1',
+    product_id: 'p1',
+    rating: 5,
+    comment: 'Excellent property and very professional seller. Rahul made the entire process smooth.',
+    created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+    reviewer: { full_name: 'Ankit Sharma', avatar_url: 'https://picsum.photos/seed/ankit/100/100' }
+  },
+  {
+    id: 'rev_2',
+    reviewer_id: 'u3',
+    reviewee_id: 'mock-user-1',
+    product_id: 'm1',
+    rating: 4,
+    comment: 'Great phone, exactly as described. Rahul was responsive and helpful.',
+    created_at: new Date(Date.now() - 86400000 * 10).toISOString(),
+    reviewer: { full_name: 'Sneha Reddy', avatar_url: 'https://picsum.photos/seed/sneha/100/100' }
+  }
+];

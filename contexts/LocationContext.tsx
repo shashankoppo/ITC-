@@ -1,6 +1,46 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+export const INDIAN_STATES_AND_DISTRICTS: Record<string, string[]> = {
+  "All India": ["Anywhere in India"],
+  "Andaman and Nicobar": ["Port Blair", "Havelock Island", "Diglipur"],
+  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool", "Tirupati"],
+  "Arunachal Pradesh": ["Itanagar", "Tawang", "Ziro", "Pasighat"],
+  "Assam": ["Guwahati", "Dibrugarh", "Silchar", "Jorhat", "Tezpur"],
+  "Bihar": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Purnia"],
+  "Chandigarh": ["Chandigarh"],
+  "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur", "Korba", "Durg"],
+  "Dadra and Nagar Haveli": ["Silvassa", "Daman", "Diu"],
+  "Delhi": ["New Delhi", "North Delhi", "South Delhi", "West Delhi", "East Delhi", "Noida", "Gurugram"],
+  "Goa": ["Panaji", "Margao", "Vasco da Gama", "Mapusa"],
+  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Gandhinagar"],
+  "Haryana": ["Gurugram", "Faridabad", "Panipat", "Ambala", "Yamunanagar", "Rohtak", "Hisar"],
+  "Himachal Pradesh": ["Shimla", "Manali", "Dharamshala", "Solan", "Mandi"],
+  "Jammu and Kashmir": ["Srinagar", "Jammu", "Anantnag", "Baramulla", "Kathua"],
+  "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro", "Deoghar"],
+  "Karnataka": ["Bengaluru", "Mysuru", "Hubballi", "Mangaluru", "Belagavi", "Davanagere", "Bellary"],
+  "Kerala": ["Kochi", "Thiruvananthapuram", "Kozhikode", "Thrissur", "Kollam", "Palakkad"],
+  "Ladakh": ["Leh", "Kargil"],
+  "Lakshadweep": ["Kavaratti"],
+  "Madhya Pradesh": ["Indore", "Bhopal", "Jabalpur", "Gwalior", "Ujjain", "Sagar"],
+  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad", "Solapur", "Amravati", "Navi Mumbai"],
+  "Manipur": ["Imphal", "Churachandpur", "Thoubal"],
+  "Meghalaya": ["Shillong", "Tura", "Jowai"],
+  "Mizoram": ["Aizawl", "Lunglei", "Champhai"],
+  "Nagaland": ["Kohima", "Dimapur", "Mokokchung"],
+  "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela", "Berhampur", "Sambalpur"],
+  "Puducherry": ["Puducherry", "Karaikal", "Mahe", "Yanam"],
+  "Punjab": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali"],
+  "Rajasthan": ["Jaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Udaipur", "Bhilwara"],
+  "Sikkim": ["Gangtok", "Namchi", "Geyzing"],
+  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Vellore"],
+  "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Khammam", "Karimnagar", "Ramagundam"],
+  "Tripura": ["Agartala", "Udaipur", "Dharmanagar"],
+  "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Meerut", "Varanasi", "Prayagraj", "Bareilly", "Noida"],
+  "Uttarakhand": ["Dehradun", "Haridwar", "Roorkee", "Haldwani", "Rudrapur"],
+  "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri", "Bardhaman"],
+};
+
 interface LocationContextType {
   selectedCity: string;
   setSelectedCity: (city: string) => void;
@@ -9,13 +49,8 @@ interface LocationContextType {
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
-const AVAILABLE_CITIES = [
-  'India', 'Mumbai', 'Delhi', 'Bengaluru', 'Pune', 'Hyderabad', 
-  'Chennai', 'Kolkata', 'Ahmedabad', 'Gurugram', 'Chandigarh', 'Jaipur', 'Lucknow', 'Noida'
-];
-
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [selectedCity, setSelectedCityState] = useState('India');
+  const [selectedCity, setSelectedCityState] = useState('All India');
 
   useEffect(() => {
     loadSavedLocation();
@@ -42,7 +77,11 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <LocationContext.Provider value={{ selectedCity, setSelectedCity, availableCities: AVAILABLE_CITIES }}>
+    <LocationContext.Provider value={{ 
+      selectedCity, 
+      setSelectedCity, 
+      availableCities: [] // We won't use this directly anymore, but keep for type compatibility
+    }}>
       {children}
     </LocationContext.Provider>
   );

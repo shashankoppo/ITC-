@@ -11,6 +11,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 interface CategoryCardProps {
   category: Category;
+  count?: number;
 }
 
 const iconMap: { [key: string]: any } = {
@@ -44,7 +45,7 @@ const iconMap: { [key: string]: any } = {
   laptop: Laptop,
 };
 
-export function CategoryCard({ category }: CategoryCardProps) {
+export function CategoryCard({ category, count }: CategoryCardProps) {
   const router = useRouter();
   const Icon = iconMap[category.icon || category.slug || 'shopping'] || ShoppingBag;
 
@@ -68,6 +69,11 @@ export function CategoryCard({ category }: CategoryCardProps) {
       <Text style={styles.name} numberOfLines={1}>
         {category.name}
       </Text>
+      {count !== undefined && count > 0 && (
+        <View style={styles.countBadge}>
+          <Text style={styles.countText}>{count}</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
@@ -104,5 +110,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '700',
     letterSpacing: -0.2,
+  },
+  countBadge: {
+    position: 'absolute',
+    top: -2,
+    right: 6,
+    backgroundColor: COLORS.accent,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: COLORS.white,
+  },
+  countText: {
+    fontSize: 9,
+    color: COLORS.primary,
+    fontWeight: '800',
   },
 });

@@ -4,7 +4,9 @@ import { Heart, MapPin, Zap, Megaphone, Crown, Sparkles } from 'lucide-react-nat
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import * as Haptics from 'expo-haptics';
+import { useAuth } from '@/contexts/AuthContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface ProductCardProps {
   product: Product;
@@ -14,7 +16,9 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onFavoriteToggle, isFavorite }: ProductCardProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [localFavorite, setLocalFavorite] = useState(isFavorite);
+  const isOwnListing = user?.id === product.user_id;
 
   const handlePress = () => {
     router.push(`/product/${product.id}`);
@@ -88,9 +92,21 @@ export function ProductCard({ product, onFavoriteToggle, isFavorite }: ProductCa
           </View>
         )}
         
-        {product.is_negotiable && !tierStyles && (
+        {product.is_negotiable && !tierStyles && !isOwnListing && (
           <View style={styles.negotiableBadge}>
             <Text style={styles.negotiableText}>NEGOTIABLE</Text>
+          </View>
+        )}
+
+        {isOwnListing && (
+          <View style={styles.myListingBadge}>
+            <LinearGradient
+              colors={[COLORS.secondary, COLORS.secondaryDark]}
+              style={styles.myListingGradient}
+            >
+              <Megaphone size={10} color={COLORS.primary} fill={COLORS.primary} />
+              <Text style={styles.myListingText}>MY AD</Text>
+            </LinearGradient>
           </View>
         )}
       </View>
@@ -262,5 +278,28 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: COLORS.textLight,
     fontWeight: '500',
+  },
+  myListingBadge: {
+    position: 'absolute',
+    bottom: 6,
+    right: 6,
+    borderRadius: 4,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  myListingGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  myListingText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: COLORS.primary,
   },
 });

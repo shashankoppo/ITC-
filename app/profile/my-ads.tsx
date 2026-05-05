@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Product } from '@/types/database';
+import { productApi } from '@/lib/api';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 export default function MyAdsScreen() {

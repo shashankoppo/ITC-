@@ -12,6 +12,7 @@ import {
   StatusBar,
   Modal,
   Pressable,
+  useWindowDimensions,
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,19 +26,20 @@ import { CategoryCard } from '@/components/CategoryCard';
 import { AdBanner } from '@/components/AdBanner';
 import { PremiumSlider } from '@/components/PremiumSlider';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocation } from '@/contexts/LocationContext';
+import { useLocation, INDIAN_STATES_AND_DISTRICTS } from '@/contexts/LocationContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '@/lib/mockData';
 
-const { width } = Dimensions.get('window');
 const ITEMS_PER_PAGE = 12;
 
 export default function HomeScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [premiumProducts, setPremiumProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>(MOCK_CATEGORIES);
+  const [categoryCounts, setCategoryCounts] = useState<{ [key: string]: number }>({});
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -49,6 +51,8 @@ export default function HomeScreen() {
   const { selectedCity, setSelectedCity, availableCities } = useLocation();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showSortModal, setShowSortModal] = useState(false);
+  const [selectedStateForFilter, setSelectedStateForFilter] = useState<string | null>(null);
+  const [conditionFilter, setConditionFilter] = useState<string>('any');
 
   const SORT_OPTIONS = [
     { label: 'Newest First', value: 'newest' },
@@ -79,7 +83,18 @@ export default function HomeScreen() {
   const loadCategories = async () => {
     try {
       const data = await categoryApi.getAllCategories();
-      setCategories(data);
+      setCategories(data || []);
+      
+      // Load counts for top categories
+      const counts: { [key: string]: number } = {};
+      const categoryList = data || MOCK_CATEGORIES;
+      await Promise.all(
+        categoryList.slice(0, 8).map(async (cat: Category) => {
+          const count = await categoryApi.getCategoryCount(cat.id);
+          counts[cat.id] = count;
+        })
+      );
+      setCategoryCounts(counts);
     } catch (error) {
       console.error('Error loading categories:', error);
       setCategories(MOCK_CATEGORIES);
@@ -304,7 +319,11 @@ export default function HomeScreen() {
               style={styles.categoriesScroll}
               contentContainerStyle={styles.categoriesContent}>
               {categories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
+                <CategoryCard 
+                  key={category.id} 
+                  category={category} 
+                  count={categoryCounts[category.id]}
+                />
               ))}
             </ScrollView>
 
@@ -327,48 +346,94 @@ export default function HomeScreen() {
         visible={showLocationModal}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setShowLocationModal(false)}
+        onRequestClose={() => {
+          setShowLocationModal(false);
+          setSelectedStateForFilter(null);
+        }}
       >
         <Pressable 
           style={styles.modalOverlay} 
-          onPress={() => setShowLocationModal(false)}
+          onPress={() => {
+            setShowLocationModal(false);
+            setSelectedStateForFilter(null);
+          }}
         >
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { maxHeight: '80%' }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Location</Text>
-              <TouchableOpacity onPress={() => setShowLocationModal(false)}>
+              <Text style={styles.modalTitle}>
+                {selectedStateForFilter ? `Select District in ${selectedStateForFilter}` : 'Select State'}
+              </Text>
+              <TouchableOpacity onPress={() => {
+                setShowLocationModal(false);
+                setSelectedStateForFilter(null);
+              }}>
                 <Text style={styles.closeBtn}>Close</Text>
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.cityList}>
-              {availableCities.map((city) => (
-                <TouchableOpacity
-                  key={city}
-                  style={[
-                    styles.cityItem,
-                    selectedCity === city && styles.selectedCityItem
-                  ]}
-                  onPress={() => {
-                    setSelectedCity(city);
-                    setShowLocationModal(false);
-                    setPage(0);
-                  }}
-                >
-                  <Text style={[
-                    styles.cityText,
-                    selectedCity === city && styles.selectedCityText
-                  ]}>
-                    {city}
-                  </Text>
-                  {selectedCity === city && <MapPin size={16} color={COLORS.primary} />}
-                </TouchableOpacity>
-              ))}
+              {!selectedStateForFilter ? (
+                // State List
+                Object.keys(INDIAN_STATES_AND_DISTRICTS).map((state) => (
+                  <TouchableOpacity
+                    key={state}
+                    style={styles.cityItem}
+                    onPress={() => {
+                      if (state === 'All India') {
+                        setSelectedCity('All India');
+                        setShowLocationModal(false);
+                        setPage(0);
+                      } else {
+                        setSelectedStateForFilter(state);
+                      }
+                    }}
+                  >
+                    <Text style={styles.cityText}>{state}</Text>
+                    <ChevronDown size={16} color={COLORS.textLight} style={{ transform: [{ rotate: '-90deg' }] }} />
+                  </TouchableOpacity>
+                ))
+              ) : (
+                // District List
+                <>
+                  <TouchableOpacity
+                    style={styles.cityItem}
+                    onPress={() => setSelectedStateForFilter(null)}
+                  >
+                    <Text style={[styles.cityText, { color: COLORS.primary, fontWeight: '600' }]}>← Back to States</Text>
+                  </TouchableOpacity>
+                  {INDIAN_STATES_AND_DISTRICTS[selectedStateForFilter].map((district) => {
+                    const fullLocation = `${district}, ${selectedStateForFilter}`;
+                    return (
+                      <TouchableOpacity
+                        key={district}
+                        style={[
+                          styles.cityItem,
+                          selectedCity === fullLocation && styles.selectedCityItem
+                        ]}
+                        onPress={() => {
+                          setSelectedCity(fullLocation);
+                          setShowLocationModal(false);
+                          setSelectedStateForFilter(null);
+                          setPage(0);
+                        }}
+                      >
+                        <Text style={[
+                          styles.cityText,
+                          selectedCity === fullLocation && styles.selectedCityText
+                        ]}>
+                          {district}
+                        </Text>
+                        {selectedCity === fullLocation && <MapPin size={16} color={COLORS.primary} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </>
+              )}
             </ScrollView>
           </View>
         </Pressable>
       </Modal>
 
-      {/* Sort Selection Modal */}
+      {/* Filter & Sort Selection Modal */}
       <Modal
         visible={showSortModal}
         transparent={true}
@@ -381,12 +446,16 @@ export default function HomeScreen() {
         >
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Sort By</Text>
-              <TouchableOpacity onPress={() => setShowSortModal(false)}>
-                <Text style={styles.closeBtn}>Close</Text>
+              <Text style={styles.modalTitle}>Filters & Sort</Text>
+              <TouchableOpacity onPress={() => {
+                 setShowSortModal(false);
+                 setPage(0);
+              }}>
+                <Text style={styles.closeBtn}>Apply</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.cityList}>
+            <ScrollView style={styles.cityList}>
+              <Text style={{ ...FONTS.h3, fontSize: 16, marginBottom: 12, color: COLORS.text }}>Sort By</Text>
               {SORT_OPTIONS.map((option) => (
                 <TouchableOpacity
                   key={option.value}
@@ -396,8 +465,6 @@ export default function HomeScreen() {
                   ]}
                   onPress={() => {
                     setSortBy(option.value);
-                    setShowSortModal(false);
-                    setPage(0);
                   }}
                 >
                   <Text style={[
@@ -409,7 +476,30 @@ export default function HomeScreen() {
                   {sortBy === option.value && <Check size={16} color={COLORS.primary} />}
                 </TouchableOpacity>
               ))}
-            </View>
+
+              <Text style={{ ...FONTS.h3, fontSize: 16, marginTop: 24, marginBottom: 12, color: COLORS.text }}>Condition</Text>
+              {[{label: 'Any Condition', value: 'any'}, {label: 'Brand New', value: 'new'}, {label: 'Like New', value: 'like_new'}, {label: 'Good / Fair', value: 'good'}].map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.cityItem,
+                    conditionFilter === option.value && styles.selectedCityItem
+                  ]}
+                  onPress={() => {
+                    setConditionFilter(option.value);
+                  }}
+                >
+                  <Text style={[
+                    styles.cityText,
+                    conditionFilter === option.value && styles.selectedCityText
+                  ]}>
+                    {option.label}
+                  </Text>
+                  {conditionFilter === option.value && <Check size={16} color={COLORS.primary} />}
+                </TouchableOpacity>
+              ))}
+              <View style={{height: 20}} />
+            </ScrollView>
           </View>
         </Pressable>
       </Modal>

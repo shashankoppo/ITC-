@@ -27,6 +27,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function initializeAuth() {
       if (API_CONFIG.useMockData) {
+        const mockUser = { id: MOCK_USERS[0].id, email: 'test@example.com' } as User;
+        const mockSession = { user: mockUser, access_token: 'mock', refresh_token: 'mock' } as Session;
+        setSession(mockSession);
+        setUser(mockUser);
+        setProfile(MOCK_USERS[0]);
         setLoading(false);
         return;
       }

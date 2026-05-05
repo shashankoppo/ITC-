@@ -74,13 +74,13 @@ export default function AddListingScreen() {
   const checkActiveListings = async () => {
     if (!user) return;
     try {
-      const count = await categoryApi.getCategoryCount('any'); // Logic should be updated to get user product count
-      // For now we'll stick to a simpler check or keep existing if it works better
+      const count = await productApi.getUserActiveProductsCount(user.id);
       setActiveProductsCount(count);
     } catch {
       setActiveProductsCount(0);
     }
   };
+
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};

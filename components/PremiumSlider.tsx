@@ -7,6 +7,7 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Product } from '@/types/database';
@@ -14,16 +15,15 @@ import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 import { Zap, Crown, MapPin } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
-const { width } = Dimensions.get('window');
-const ITEM_WIDTH = width * 0.82;
-const ITEM_HEIGHT = 200;
-const ITEM_SPACING = SPACING.md;
-
 interface PremiumSliderProps {
   products: Product[];
 }
 
 export function PremiumSlider({ products }: PremiumSliderProps) {
+  const { width } = useWindowDimensions();
+  const ITEM_WIDTH = width * 0.82;
+  const ITEM_HEIGHT = 200;
+  const ITEM_SPACING = SPACING.md;
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -49,7 +49,7 @@ export function PremiumSlider({ products }: PremiumSliderProps) {
     <TouchableOpacity
       activeOpacity={0.95}
       onPress={() => router.push(`/product/${item.id}`)}
-      style={styles.card}>
+      style={[styles.card, { width: ITEM_WIDTH, height: ITEM_HEIGHT }]}>
       <Image
         source={{ uri: item.images[0] || 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=800' }}
         style={styles.image}
@@ -97,7 +97,7 @@ export function PremiumSlider({ products }: PremiumSliderProps) {
         showsHorizontalScrollIndicator={false}
         snapToInterval={ITEM_WIDTH + ITEM_SPACING}
         decelerationRate="fast"
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { gap: ITEM_SPACING }]}
         getItemLayout={(_, index) => ({
           length: ITEM_WIDTH + ITEM_SPACING,
           offset: (ITEM_WIDTH + ITEM_SPACING) * index,
@@ -131,11 +131,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: SPACING.md,
-    gap: ITEM_SPACING,
   },
   card: {
-    width: ITEM_WIDTH,
-    height: ITEM_HEIGHT,
     borderRadius: RADIUS.lg,
     overflow: 'hidden',
     backgroundColor: COLORS.primaryDark,

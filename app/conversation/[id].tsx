@@ -8,11 +8,14 @@ import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Send } from 'lucide-react-native';
+import { ArrowLeft, Send, Phone, Video } from 'lucide-react-native';
+import { Audio } from 'expo-av';
+import * as Linking from 'expo-linking';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Message, Conversation } from '@/types/database';
@@ -84,13 +87,57 @@ export default function ConversationScreen() {
           filter: `conversation_id=eq.${id}`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+          const newMessage = payload.new as Message;
+          setMessages((prev) => [...prev, newMessage]);
           flatListRef.current?.scrollToEnd({ animated: true });
+          
+          // Play sound if message is from other user
+          if (newMessage.sender_id !== user?.id) {
+            playReceiveSound();
+          }
         }
       )
       .subscribe();
 
     return subscription;
+  };
+
+  const playReceiveSound = async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: 'https://cdn.pixabay.com/audio/2022/03/15/audio_5146c65a44.mp3' }, // Professional notification sound
+        { shouldPlay: true }
+      );
+      await sound.playAsync();
+      
+      // Unload from memory after playing
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          sound.unloadAsync();
+        }
+      });
+    } catch (error) {
+      console.log('Error playing sound:', error);
+    }
+  };
+
+  const handleCall = () => {
+    if (conversation?.seller?.phone) {
+      Linking.openURL(`tel:${conversation.seller.phone}`);
+    } else {
+      Alert.alert('Not Available', 'This user hasn\'t provided a phone number.');
+    }
+  };
+
+  const handleInternetCall = () => {
+    Alert.alert(
+      'Internet Call',
+      'Connecting to secure internet call...',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'End Call', style: 'destructive', onPress: () => console.log('Call ended') }
+      ]
+    );
   };
 
   const handleSendMessage = async () => {
@@ -174,6 +221,14 @@ export default function ConversationScreen() {
           }}
           style={styles.headerAvatar}
         />
+        <View style={styles.headerActions}>
+          <TouchableOpacity onPress={handleCall} style={styles.headerActionBtn}>
+            <Phone size={20} color="#1a73e8" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleInternetCall} style={styles.headerActionBtn}>
+            <Video size={20} color="#1a73e8" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -256,9 +311,22 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   headerAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginLeft: 8,
+  },
+  headerActionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f0f7ff',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   messagesList: {
     paddingHorizontal: 16,

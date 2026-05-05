@@ -9,15 +9,18 @@ import {
   Alert,
   Dimensions,
   StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import Head from 'expo-router/head';
 import { 
   ArrowLeft, Heart, Share2, MapPin, ShieldCheck, 
   MessageCircle, Star, Zap, Phone, Clock, Crown, 
-  Shield, CheckCircle2, Info, ChevronRight, Eye
+  Shield, CheckCircle2, Info, ChevronRight, Eye, Video
 } from 'lucide-react-native';
+import * as Linking from 'expo-linking';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { productApi, favoriteApi, messageApi } from '@/lib/api';
@@ -26,9 +29,8 @@ import { Product } from '@/types/database';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 import { MOCK_PRODUCTS } from '@/lib/mockData';
 
-const { width } = Dimensions.get('window');
-
 export default function ProductDetailScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { user } = useAuth();
@@ -36,6 +38,16 @@ export default function ProductDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+
+  const dynamicStyles = {
+    imageSection: {
+      width: '100%',
+      height: width > 768 ? 500 : width * 0.9,
+    },
+    mainImage: {
+      width: width > 768 ? 800 : width,
+    }
+  };
 
   useEffect(() => {
     if (id) loadProduct();
@@ -96,6 +108,25 @@ export default function ProductDetailScreen() {
     }
   };
 
+  const handleCall = () => {
+    if (product?.profiles?.phone) {
+      Linking.openURL(`tel:${product.profiles.phone}`);
+    } else {
+      Alert.alert('Not Available', 'This seller hasn\'t provided a phone number.');
+    }
+  };
+
+  const handleVideoCall = () => {
+    Alert.alert(
+      'Internet Call',
+      'Connecting to secure internet call...',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'End Call', style: 'destructive', onPress: () => console.log('Call ended') }
+      ]
+    );
+  };
+
   const timeAgo = (date: string) => {
     const d = new Date(date);
     return `Posted ${d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`;
@@ -132,12 +163,22 @@ export default function ProductDetailScreen() {
     : ['https://images.pexels.com/photos/1029243/pexels-photo-1029243.jpeg?auto=compress&cs=tinysrgb&w=600'];
 
   return (
-    <View style={styles.container}>
+    <>
+      <Head>
+        <title>{`${product.title} - ₹${product.price.toLocaleString('en-IN')} | SellAdv`}</title>
+        <meta name="description" content={`${product.title} in ${product.condition} condition for ₹${product.price.toLocaleString('en-IN')}. ${product.description.substring(0, 150)}...`} />
+        <meta property="og:title" content={`${product.title} | SellAdv`} />
+        <meta property="og:description" content={`Buy ${product.title} for ₹${product.price.toLocaleString('en-IN')}. Location: ${product.location}.`} />
+        {images && images.length > 0 && (
+          <meta property="og:image" content={images[0]} />
+        )}
+      </Head>
+      <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent />
       
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Image Section */}
-        <View style={styles.imageSection}>
+        <View style={[styles.imageSection, dynamicStyles.imageSection]}>
           <ScrollView 
             horizontal 
             pagingEnabled 
@@ -149,7 +190,9 @@ export default function ProductDetailScreen() {
             showsHorizontalScrollIndicator={false}
           >
             {images.map((img, index) => (
-              <Image key={index} source={{ uri: img }} style={styles.mainImage} resizeMode="cover" />
+              <View key={index} style={{ width: width, height: dynamicStyles.imageSection.height, alignItems: 'center', justifyContent: 'center' }}>
+                <Image source={{ uri: img }} style={[styles.mainImage, dynamicStyles.mainImage]} resizeMode="contain" />
+              </View>
             ))}
           </ScrollView>
           
@@ -267,7 +310,11 @@ export default function ProductDetailScreen() {
           {/* Seller Profile */}
           <View style={styles.section}>
             <Text style={styles.sectionHeading}>Seller Details</Text>
-            <TouchableOpacity style={styles.sellerCard} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={styles.sellerCard} 
+              activeOpacity={0.8}
+              onPress={() => router.push(`/profile/${product.user_id}` as any)}
+            >
               <Image 
                 source={{ uri: product.profiles?.avatar_url || 'https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=100' }} 
                 style={styles.sellerAvatar} 
@@ -305,7 +352,10 @@ export default function ProductDetailScreen() {
               <Text style={styles.chatBtnText}>Chat now</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={[styles.footerBtn, styles.callBtn]}>
+            <TouchableOpacity 
+              style={[styles.footerBtn, styles.callBtn]}
+              onPress={handleCall}
+            >
               <LinearGradient
                 colors={[COLORS.primary, COLORS.primaryDark]}
                 style={styles.callGradient}
@@ -317,7 +367,8 @@ export default function ProductDetailScreen() {
           </View>
         </LinearGradient>
       </View>
-    </View>
+      </View>
+    </>
   );
 }
 
@@ -335,14 +386,15 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   imageSection: {
-    width: width,
-    height: width * 0.9,
+    maxHeight: 600,
     backgroundColor: COLORS.surface,
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   mainImage: {
-    width: width,
-    height: width * 0.9,
+    height: '100%',
+    maxWidth: '100%',
   },
   imageOverlayTop: {
     position: 'absolute',

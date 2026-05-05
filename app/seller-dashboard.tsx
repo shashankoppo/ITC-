@@ -18,6 +18,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
+import { userApi } from '@/lib/api';
 
 const { width } = Dimensions.get('window');
 
@@ -25,13 +26,35 @@ export default function SellerDashboardScreen() {
   const router = useRouter();
   const { user, profile } = useAuth();
   const [stats, setStats] = useState({
-    totalViews: 1250,
-    activeAds: 5,
-    totalMessages: 42,
-    totalFollowers: 18,
-    avgRating: 4.8,
-    soldCount: 12
+    totalViews: 0,
+    activeAds: 0,
+    totalMessages: 0,
+    totalFollowers: 0,
+    avgRating: 0,
+    soldCount: 0
   });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadStats();
+    }
+  }, [user]);
+
+  const loadStats = async () => {
+    try {
+      const data = await userApi.getDashboardStats(user!.id);
+      setStats({
+        ...stats,
+        ...data,
+        avgRating: profile?.rating || 0,
+      });
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const StatCard = ({ icon: Icon, label, value, color }: any) => (
     <View style={styles.statCard}>

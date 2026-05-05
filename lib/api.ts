@@ -1,12 +1,13 @@
 import { supabase } from './supabase';
 import { Product, Review } from '@/types/database';
 import { API_CONFIG, handleApiError } from './api_config';
-import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_CONVERSATIONS, MOCK_MESSAGES, MOCK_FAVORITES } from './mockData';
+import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_CONVERSATIONS, MOCK_MESSAGES, MOCK_FAVORITES, MOCK_REVIEWS, MOCK_USERS } from './mockData';
 
 export const productApi = {
   async getProducts(page: number = 0, limit: number = 12, location: string = 'India', sortBy: string = 'newest') {
     let filteredProducts = [...MOCK_PRODUCTS];
-    if (location !== 'India') {
+    const isGlobal = location === 'India' || location === 'All India';
+    if (!isGlobal) {
       filteredProducts = filteredProducts.filter(p => 
         p.location?.toLowerCase().includes(location.toLowerCase())
       );
@@ -54,6 +55,21 @@ export const productApi = {
   },
 
   async getProductById(id: string) {
+    if (API_CONFIG.useMockData) {
+      const product = MOCK_PRODUCTS.find(p => p.id === id);
+      if (!product) return null;
+      
+      // Get category and user for mock product
+      const category = MOCK_CATEGORIES.find(c => c.id === product.category_id);
+      const user = MOCK_USERS[0]; // All belong to mock-user-1
+      
+      return {
+        ...product,
+        categories: category,
+        profiles: user,
+      };
+    }
+    
     const { data, error } = await supabase
       .from('products')
       .select('*, profiles(*), categories(*)')
@@ -66,7 +82,8 @@ export const productApi = {
 
   async getProductsByCategory(categoryId: string, page: number = 0, limit: number = 12, location: string = 'India') {
     let filteredProducts = MOCK_PRODUCTS.filter(p => p.category_id === categoryId);
-    if (location !== 'India') {
+    const isGlobal = location === 'India' || location === 'All India';
+    if (!isGlobal) {
       filteredProducts = filteredProducts.filter(p => 
         p.location?.toLowerCase().includes(location.toLowerCase())
       );
@@ -97,7 +114,7 @@ export const productApi = {
 
   async getUserProducts(userId: string) {
     if (API_CONFIG.useMockData) {
-      return MOCK_PRODUCTS.filter(p => p.user_id === userId || p.user_id === 'u1'); // u1 is default mock user
+      return MOCK_PRODUCTS.filter(p => p.user_id === userId || p.user_id === 'mock-user-1'); // mock-user-1 is default mock user
     }
 
     const { data, error } = await supabase
@@ -108,6 +125,21 @@ export const productApi = {
 
     if (error) throw error;
     return data;
+  },
+
+  async getUserActiveProductsCount(userId: string) {
+    if (API_CONFIG.useMockData) {
+      return MOCK_PRODUCTS.filter(p => (p.user_id === userId || p.user_id === 'mock-user-1') && p.status === 'active').length;
+    }
+
+    const { count, error } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('status', 'active');
+
+    if (error) throw error;
+    return count || 0;
   },
 
   async createProduct(product: Partial<Product>, imageUris?: string[]) {
@@ -228,7 +260,8 @@ export const productApi = {
         p.description.toLowerCase().includes(q)
       );
 
-      if (location !== 'India') {
+      const isGlobal = location === 'India' || location === 'All India';
+      if (!isGlobal) {
         filtered = filtered.filter(p => 
           p.location?.toLowerCase().includes(location.toLowerCase())
         );
@@ -271,7 +304,8 @@ export const productApi = {
 
   async getPremiumProducts(limit: number = 10, location: string = 'India') {
     let filteredProducts = MOCK_PRODUCTS.filter(p => p.tier === 'premium');
-    if (location !== 'India') {
+    const isGlobal = location === 'India' || location === 'All India';
+    if (!isGlobal) {
       filteredProducts = filteredProducts.filter(p => 
         p.location?.toLowerCase().includes(location.toLowerCase())
       );
@@ -492,6 +526,9 @@ export const messageApi = {
 
 export const reviewApi = {
   async getUserReviews(userId: string) {
+    if (API_CONFIG.useMockData) {
+      return MOCK_REVIEWS.filter(r => r.reviewee_id === userId || (userId === 'mock-user-1' && r.reviewee_id === 'mock-user-1'));
+    }
     const { data, error } = await supabase
       .from('reviews')
       .select('*, reviewer:profiles!reviews_reviewer_id_fkey(*), products(*)')
@@ -552,6 +589,7 @@ export const categoryApi = {
   },
 
   async getCategoryBySlug(slug: string) {
+    if (API_CONFIG.useMockData) return MOCK_CATEGORIES.find(c => c.slug === slug);
     const { data, error } = await supabase
       .from('categories')
       .select('*')
@@ -564,6 +602,7 @@ export const categoryApi = {
   },
 
   async getCategoryCount(categoryId: string) {
+    if (API_CONFIG.useMockData) return MOCK_PRODUCTS.filter(p => p.category_id === categoryId).length;
     const { count, error } = await supabase
       .from('products')
       .select('*', { count: 'exact', head: true })
@@ -577,6 +616,24 @@ export const categoryApi = {
 
 export const userApi = {
   async getUserProfile(userId: string) {
+    if (API_CONFIG.useMockData) {
+      if (userId === 'mock-user-1') {
+        return MOCK_USERS[0];
+      }
+      // Mock some realistic profiles for the mock user IDs
+      return {
+        id: userId,
+        full_name: userId === 'u1' ? 'Rahul Kapoor' : userId === 'u2' ? 'Priya Verma' : `Seller ${userId}`,
+        avatar_url: `https://picsum.photos/seed/${userId}/200/200`,
+        phone: '+91 9876543210',
+        location: 'Mumbai, Maharashtra',
+        bio: 'Premium seller with a history of great products.',
+        is_admin: false,
+        rating: 4.8,
+        total_reviews: 24,
+        is_verified: true,
+      };
+    }
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -588,6 +645,7 @@ export const userApi = {
   },
 
   async updateUserProfile(userId: string, updates: any) {
+    if (API_CONFIG.useMockData) return;
     const { data, error } = await supabase
       .from('profiles')
       .update(updates)
@@ -597,6 +655,58 @@ export const userApi = {
 
     if (error) throw error;
     return data;
+  },
+
+  async verifyUser(userId: string) {
+    if (API_CONFIG.useMockData) return;
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ is_verified: true })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getDashboardStats(userId: string) {
+    if (API_CONFIG.useMockData) {
+      return {
+        totalViews: 1250,
+        activeAds: 5,
+        totalMessages: 42,
+        totalFollowers: 18,
+        avgRating: 4.8,
+        soldCount: 12
+      };
+    }
+
+    // This is a simplified version. In a real app, you'd use a single query or RPC
+    const { count: activeAds } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('status', 'active');
+
+    const { data: viewsData } = await supabase
+      .from('products')
+      .select('views_count')
+      .eq('user_id', userId);
+    
+    const totalViews = viewsData?.reduce((sum, p) => sum + (p.views_count || 0), 0) || 0;
+
+    const { count: totalFollowers } = await supabase
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('following_id', userId);
+
+    return {
+      activeAds: activeAds || 0,
+      totalViews,
+      totalFollowers: totalFollowers || 0,
+      // ... other stats
+    };
   },
 
   async createProfile(userId: string, fullName: string) {
@@ -611,5 +721,64 @@ export const userApi = {
 
     if (error) throw error;
     return data;
+  },
+};
+
+export const followerApi = {
+  async followUser(followerId: string, followingId: string) {
+    if (API_CONFIG.useMockData) return;
+
+    const { error } = await supabase
+      .from('follows')
+      .insert({ follower_id: followerId, following_id: followingId });
+
+    if (error) throw error;
+  },
+
+  async unfollowUser(followerId: string, followingId: string) {
+    if (API_CONFIG.useMockData) return;
+
+    const { error } = await supabase
+      .from('follows')
+      .delete()
+      .eq('follower_id', followerId)
+      .eq('following_id', followingId);
+
+    if (error) throw error;
+  },
+
+  async isFollowing(followerId: string, followingId: string) {
+    if (API_CONFIG.useMockData) return true; // Default to true for demo purposes
+    const { data, error } = await supabase
+      .from('follows')
+      .select('id')
+      .eq('follower_id', followerId)
+      .eq('following_id', followingId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return !!data;
+  },
+
+  async getFollowersCount(userId: string) {
+    if (API_CONFIG.useMockData) return userId === 'mock-user-1' ? 1240 : 42;
+    const { count, error } = await supabase
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('following_id', userId);
+
+    if (error) throw error;
+    return count || 0;
+  },
+
+  async getFollowingCount(userId: string) {
+    if (API_CONFIG.useMockData) return userId === 'mock-user-1' ? 56 : 12;
+    const { count, error } = await supabase
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('follower_id', userId);
+
+    if (error) throw error;
+    return count || 0;
   },
 };
