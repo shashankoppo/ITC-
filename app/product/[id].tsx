@@ -177,8 +177,10 @@ export default function ProductDetailScreen() {
       <StatusBar barStyle="light-content" translucent />
       
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Image Section */}
-        <View style={[styles.imageSection, dynamicStyles.imageSection]}>
+        <View style={width > 900 ? styles.responsiveLayout : null}>
+          {/* Left Column: Image Section */}
+          <View style={width > 900 ? styles.leftColumn : null}>
+            <View style={[styles.imageSection, dynamicStyles.imageSection]}>
           <ScrollView 
             horizontal 
             pagingEnabled 
@@ -238,10 +240,12 @@ export default function ProductDetailScreen() {
               </LinearGradient>
             </View>
           )}
-        </View>
+            </View>
+          </View>
 
-        {/* Content Section */}
-        <View style={styles.mainContent}>
+          {/* Right Column: Content Section */}
+          <View style={width > 900 ? styles.rightColumn : null}>
+            <View style={[styles.mainContent, width > 900 && { marginTop: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 }]}>
           <View style={styles.headerInfo}>
             <View style={styles.priceRow}>
               <Text style={styles.price}>₹ {product.price.toLocaleString('en-IN')}</Text>
@@ -334,6 +338,8 @@ export default function ProductDetailScreen() {
           </View>
 
           <View style={{ height: 120 }} />
+            </View>
+          </View>
         </View>
       </ScrollView>
 
@@ -470,6 +476,21 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: RADIUS.xl,
     borderTopRightRadius: RADIUS.xl,
     marginTop: -20,
+    flex: 1,
+  },
+  responsiveLayout: {
+    flexDirection: 'row',
+    maxWidth: 1400,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  leftColumn: {
+    flex: 1.2,
+    paddingTop: 0,
+  },
+  rightColumn: {
+    flex: 1,
+    paddingTop: 0,
   },
   headerInfo: {
     marginBottom: SPACING.md,

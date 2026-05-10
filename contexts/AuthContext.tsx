@@ -111,15 +111,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     if (API_CONFIG.useMockData) {
-      if (email === 'test@example.com' && password === 'password123') {
-        const mockUser = { id: MOCK_USERS[0].id, email } as User;
-        const mockSession = { user: mockUser, access_token: 'mock', refresh_token: 'mock' } as Session;
-        setSession(mockSession);
-        setUser(mockUser);
-        setProfile(MOCK_USERS[0]);
-        return;
+      if (password === 'password123') {
+        const emailPrefix = email.split('@')[0].toLowerCase();
+        const selectedProfile = MOCK_USERS.find(u => 
+          u.id.toLowerCase().includes(emailPrefix) || 
+          u.full_name.toLowerCase().includes(emailPrefix)
+        );
+
+        if (selectedProfile) {
+          const mockUser = { id: selectedProfile.id, email } as User;
+          const mockSession = { user: mockUser, access_token: 'mock', refresh_token: 'mock' } as Session;
+          setSession(mockSession);
+          setUser(mockUser);
+          setProfile(selectedProfile);
+          return;
+        }
       }
-      throw new Error('Invalid mock credentials. Use test@example.com / password123');
+      throw new Error('Invalid credentials. Use <department>@itc.com / password123');
     }
 
     const { error } = await supabase.auth.signInWithPassword({

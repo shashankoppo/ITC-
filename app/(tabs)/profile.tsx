@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -25,6 +26,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 export default function ProfileScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
 
@@ -65,7 +67,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[width > 1000 && { maxWidth: 1000, alignSelf: 'center', width: '100%' }]}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.profileRow}>

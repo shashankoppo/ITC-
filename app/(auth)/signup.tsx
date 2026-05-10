@@ -8,6 +8,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 export default function SignupScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { signUp } = useAuth();
   const [fullName, setFullName] = useState('');
@@ -56,7 +58,7 @@ export default function SignupScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, width > 600 && { maxWidth: 500, alignSelf: 'center', width: '100%', marginTop: 40 }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.logo}>SellAdv.com</Text>
             <Text style={styles.tagline}>India's trusted marketplace</Text>

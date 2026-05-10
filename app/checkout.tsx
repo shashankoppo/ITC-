@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,6 +17,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 import { supabase } from '@/lib/supabase';
 
 export default function CheckoutScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const params = useLocalSearchParams();
   const { productId, tier, price } = params;
@@ -50,7 +52,7 @@ export default function CheckoutScreen() {
   if (success) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.successContainer}>
+        <View style={[styles.successContainer, width > 600 && { maxWidth: 500, alignSelf: 'center', width: '100%', flex: 1 }]}>
           <CheckCircle2 size={80} color={COLORS.success} strokeWidth={1.5} />
           <Text style={styles.successTitle}>Payment Successful!</Text>
           <Text style={styles.successDesc}>
@@ -77,7 +79,7 @@ export default function CheckoutScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={[width > 600 && { maxWidth: 500, alignSelf: 'center', width: '100%' }]}>
         <View style={styles.priceCard}>
           <View style={styles.tierInfo}>
             {tier === 'premium' ? (

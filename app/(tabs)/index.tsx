@@ -194,15 +194,20 @@ export default function HomeScreen() {
     }
   };
 
+  const numColumns = width > 1200 ? 5 : width > 768 ? 3 : 2;
+
   const renderItem = ({ item, index }: { item: Product; index: number }) => {
     return (
-      <View style={styles.productWrapper}>
-            <ProductCard
+      <View style={[
+        styles.productWrapper, 
+        { flex: 1 / numColumns - 0.02 }
+      ]}>
+        <ProductCard
           product={item}
-              onFavoriteToggle={handleFavoriteToggle}
+          onFavoriteToggle={handleFavoriteToggle}
           isFavorite={favorites.has(item.id)}
-            />
-          </View>
+        />
+      </View>
     );
   };
 
@@ -234,7 +239,8 @@ export default function HomeScreen() {
         colors={[COLORS.primary, COLORS.primaryDark]}
         style={styles.header}
       >
-        <View style={styles.headerTop}>
+        <View style={styles.headerInner}>
+          <View style={styles.headerTop}>
           <View style={styles.headerBrand}>
             <Text style={styles.appName}>SellAdv.com</Text>
             <TouchableOpacity 
@@ -275,15 +281,16 @@ export default function HomeScreen() {
             <SlidersHorizontal size={18} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
+        </View>
       </LinearGradient>
 
       <FlatList
         data={products}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
+        key={numColumns}
+        numColumns={numColumns}
         columnWrapperStyle={styles.row}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, width > 1200 && { maxWidth: 1200, alignSelf: 'center', width: '100%' }]}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
@@ -534,6 +541,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
+    alignItems: 'center',
+  },
+  headerInner: {
+    width: '100%',
+    maxWidth: 1200,
   },
   headerTop: {
     flexDirection: 'row',
@@ -673,8 +685,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   productWrapper: {
-    flex: 0.485,
     marginBottom: SPACING.md,
+    marginHorizontal: SPACING.xs,
   },
   footerIndicator: {
     paddingVertical: SPACING.xl,

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -38,6 +39,7 @@ const adTiers = [
 ];
 
 export default function AddListingScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { user } = useAuth();
   const [categories, setCategories] = useState<Category[]>(MOCK_CATEGORIES);
@@ -140,7 +142,7 @@ export default function AddListingScreen() {
             </View>
           </SafeAreaView>
         </LinearGradient>
-        <View style={styles.authPrompt}>
+        <View style={[styles.authPrompt, width > 800 && { maxWidth: 600, alignSelf: 'center', width: '100%' }]}>
           <View style={styles.authIconCircle}>
             <Sparkles size={48} color={COLORS.primary} />
           </View>
@@ -169,7 +171,7 @@ export default function AddListingScreen() {
         </SafeAreaView>
       </LinearGradient>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, width > 800 && { maxWidth: 800, alignSelf: 'center', width: '100%' }]}>
         {/* Photo Upload Section */}
         <View style={styles.section}>
           <Text style={styles.sectionHeading}>Showcase your Item</Text>

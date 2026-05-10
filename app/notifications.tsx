@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Bell, MessageSquare, Tag, Info, ChevronRight, CheckCircle2, Zap, Crown, AlertTriangle, Filter, CheckCircle } from 'lucide-react-native';
@@ -74,6 +74,7 @@ const MOCK_NOTIFICATIONS = [
 const FILTERS = ['All', 'Unread', 'Messages', 'Offers'];
 
 export default function NotificationsScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -147,21 +148,23 @@ export default function NotificationsScreen() {
         </SafeAreaView>
       </LinearGradient>
 
-      <FlatList
-        data={MOCK_NOTIFICATIONS}
-        renderItem={renderNotification}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
-              <Bell size={48} color={COLORS.primary} strokeWidth={1} />
+      <View style={[styles.mainWrapper, width > 800 && { maxWidth: 800, alignSelf: 'center', width: '100%' }]}>
+        <FlatList
+          data={MOCK_NOTIFICATIONS}
+          renderItem={renderNotification}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconCircle}>
+                <Bell size={48} color={COLORS.primary} strokeWidth={1} />
+              </View>
+              <Text style={styles.emptyTitle}>Stay Tuned!</Text>
+              <Text style={styles.emptySubtitle}>You'll get notified about messages, price drops, and elite deals here.</Text>
             </View>
-            <Text style={styles.emptyTitle}>Stay Tuned!</Text>
-            <Text style={styles.emptySubtitle}>You'll get notified about messages, price drops, and elite deals here.</Text>
-          </View>
-        }
-      />
+          }
+        />
+      </View>
     </View>
   );
 }
@@ -327,5 +330,8 @@ const styles = StyleSheet.create({
     marginTop: 12,
     lineHeight: 22,
     fontSize: 15,
+  },
+  mainWrapper: {
+    flex: 1,
   },
 });

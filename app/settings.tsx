@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, StatusBar, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +23,7 @@ import { useState } from 'react';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 export default function SettingsScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -91,7 +92,7 @@ export default function SettingsScreen() {
         </SafeAreaView>
       </LinearGradient>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={[width > 800 && { maxWidth: 800, alignSelf: 'center', width: '100%' }]}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Account & Profile</Text>
         </View>

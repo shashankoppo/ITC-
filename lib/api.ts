@@ -61,7 +61,7 @@ export const productApi = {
       
       // Get category and user for mock product
       const category = MOCK_CATEGORIES.find(c => c.id === product.category_id);
-      const user = MOCK_USERS[0]; // All belong to mock-user-1
+      const user = MOCK_USERS[0]; // All belong to admin
       
       return {
         ...product,
@@ -114,7 +114,7 @@ export const productApi = {
 
   async getUserProducts(userId: string) {
     if (API_CONFIG.useMockData) {
-      return MOCK_PRODUCTS.filter(p => p.user_id === userId || p.user_id === 'mock-user-1'); // mock-user-1 is default mock user
+      return MOCK_PRODUCTS.filter(p => p.user_id === userId || p.user_id === 'admin'); // admin is default mock user
     }
 
     const { data, error } = await supabase
@@ -129,7 +129,7 @@ export const productApi = {
 
   async getUserActiveProductsCount(userId: string) {
     if (API_CONFIG.useMockData) {
-      return MOCK_PRODUCTS.filter(p => (p.user_id === userId || p.user_id === 'mock-user-1') && p.status === 'active').length;
+      return MOCK_PRODUCTS.filter(p => (p.user_id === userId || p.user_id === 'admin') && p.status === 'active').length;
     }
 
     const { count, error } = await supabase
@@ -527,7 +527,7 @@ export const messageApi = {
 export const reviewApi = {
   async getUserReviews(userId: string) {
     if (API_CONFIG.useMockData) {
-      return MOCK_REVIEWS.filter(r => r.reviewee_id === userId || (userId === 'mock-user-1' && r.reviewee_id === 'mock-user-1'));
+      return MOCK_REVIEWS.filter(r => r.reviewee_id === userId || (userId === 'admin' && r.reviewee_id === 'admin'));
     }
     const { data, error } = await supabase
       .from('reviews')
@@ -617,7 +617,7 @@ export const categoryApi = {
 export const userApi = {
   async getUserProfile(userId: string) {
     if (API_CONFIG.useMockData) {
-      if (userId === 'mock-user-1') {
+      if (userId === 'admin') {
         return MOCK_USERS[0];
       }
       // Mock some realistic profiles for the mock user IDs
@@ -761,7 +761,7 @@ export const followerApi = {
   },
 
   async getFollowersCount(userId: string) {
-    if (API_CONFIG.useMockData) return userId === 'mock-user-1' ? 1240 : 42;
+    if (API_CONFIG.useMockData) return userId === 'admin' ? 1240 : 42;
     const { count, error } = await supabase
       .from('follows')
       .select('*', { count: 'exact', head: true })
@@ -772,7 +772,7 @@ export const followerApi = {
   },
 
   async getFollowingCount(userId: string) {
-    if (API_CONFIG.useMockData) return userId === 'mock-user-1' ? 56 : 12;
+    if (API_CONFIG.useMockData) return userId === 'admin' ? 56 : 12;
     const { count, error } = await supabase
       .from('follows')
       .select('*', { count: 'exact', head: true })

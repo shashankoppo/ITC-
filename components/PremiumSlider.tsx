@@ -21,8 +21,8 @@ interface PremiumSliderProps {
 
 export function PremiumSlider({ products }: PremiumSliderProps) {
   const { width } = useWindowDimensions();
-  const ITEM_WIDTH = width * 0.82;
-  const ITEM_HEIGHT = 200;
+  const ITEM_WIDTH = width > 1200 ? 600 : width > 768 ? width * 0.6 : width * 0.82;
+  const ITEM_HEIGHT = width > 768 ? 280 : 200;
   const ITEM_SPACING = SPACING.md;
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);

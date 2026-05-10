@@ -133,12 +133,16 @@ export default function CategoryScreen() {
     loadProducts(category.id, page + 1).finally(() => setLoadingMore(false));
   };
 
+  const numColumns = width > 1200 ? 5 : width > 768 ? 3 : 2;
+
   const renderItem = ({ item }: { item: Product }) => (
-    <ProductCard
-      product={item}
-      onFavoriteToggle={handleFavoriteToggle}
-      isFavorite={favorites.has(item.id)}
-    />
+    <View style={[styles.productWrapper, { flex: 1 / numColumns - 0.02 }]}>
+      <ProductCard
+        product={item}
+        onFavoriteToggle={handleFavoriteToggle}
+        isFavorite={favorites.has(item.id)}
+      />
+    </View>
   );
 
   if (loading) {
@@ -155,7 +159,7 @@ export default function CategoryScreen() {
         colors={[COLORS.primary, COLORS.primaryDark]}
         style={styles.header}
       >
-        <SafeAreaView edges={['top']}>
+        <SafeAreaView edges={['top']} style={styles.headerInner}>
           <View style={styles.headerTop}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
               <ArrowLeft size={24} color={COLORS.white} />
@@ -194,13 +198,13 @@ export default function CategoryScreen() {
       </LinearGradient>
 
       <FlatList
-        key={width > 768 ? 'grid-3' : 'grid-2'}
+        key={numColumns}
         data={products}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        numColumns={width > 768 ? 3 : 2}
+        numColumns={numColumns}
         columnWrapperStyle={styles.row}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, width > 1200 && { maxWidth: 1200, alignSelf: 'center', width: '100%' }]}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         ListHeaderComponent={
@@ -349,6 +353,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
+    alignItems: 'center',
+  },
+  headerInner: {
+    width: '100%',
+    maxWidth: 1200,
   },
   headerTop: {
     flexDirection: 'row',
@@ -428,8 +437,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   row: {
-    justifyContent: 'flex-start',
-    gap: 0,
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.xs,
+  },
+  productWrapper: {
+    marginBottom: SPACING.md,
+    marginHorizontal: SPACING.xs,
   },
   footer: {
     paddingVertical: SPACING.xl,

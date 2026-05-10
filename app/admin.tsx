@@ -5,6 +5,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  useWindowDimensions,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 export default function AdminDashboardScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { user, profile } = useAuth();
   
@@ -75,11 +77,11 @@ export default function AdminDashboardScreen() {
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={[styles.content, width > 1000 && { maxWidth: 1000, alignSelf: 'center', width: '100%' }]}>
           <Text style={styles.sectionTitle}>Platform Overview</Text>
           
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
+          <View style={[styles.statsGrid, { flexDirection: width > 768 ? 'row' : 'column' }]}>
+            <View style={[styles.statCard, width > 768 && { minWidth: '22%', flex: 1 }]}>
               <View style={[styles.iconBox, { backgroundColor: 'rgba(35, 229, 219, 0.1)' }]}>
                 <Users size={24} color={COLORS.primary} />
               </View>
@@ -87,7 +89,7 @@ export default function AdminDashboardScreen() {
               <Text style={styles.statLabel}>Total Verified Users</Text>
             </View>
             
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, width > 768 && { minWidth: '22%', flex: 1 }]}>
               <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 109, 0, 0.1)' }]}>
                 <Package size={24} color={COLORS.accent} />
               </View>
@@ -95,7 +97,7 @@ export default function AdminDashboardScreen() {
               <Text style={styles.statLabel}>Active Network Listings</Text>
             </View>
 
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, width > 768 && { minWidth: '22%', flex: 1 }]}>
               <View style={[styles.iconBox, { backgroundColor: 'rgba(35, 229, 219, 0.1)' }]}>
                 <TrendingUp size={24} color={COLORS.primary} />
               </View>
@@ -103,7 +105,7 @@ export default function AdminDashboardScreen() {
               <Text style={styles.statLabel}>New Profiles Today</Text>
             </View>
 
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, width > 768 && { minWidth: '22%', flex: 1 }]}>
               <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 0, 0, 0.1)' }]}>
                 <AlertTriangle size={24} color="#E53935" />
               </View>

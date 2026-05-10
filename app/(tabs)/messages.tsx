@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,6 +18,7 @@ import { messageApi } from '@/lib/api';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 
 export default function MessagesScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -134,7 +136,7 @@ export default function MessagesScreen() {
           data={conversations}
           renderItem={renderConversation}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, width > 1000 && { maxWidth: 1000, alignSelf: 'center', width: '100%' }]}
         />
       )}
     </SafeAreaView>

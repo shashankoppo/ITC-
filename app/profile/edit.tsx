@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { COLORS, SPACING, FONTS } from '@/constants/Theme';
 
 export default function EditProfileScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { user, profile, refreshProfile } = useAuth();
   
@@ -64,7 +66,7 @@ export default function EditProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, width > 800 && { maxWidth: 800, alignSelf: 'center', width: '100%' }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ChevronLeft size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -81,7 +83,7 @@ export default function EditProfileScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, width > 800 && { maxWidth: 800, alignSelf: 'center', width: '100%' }]}>
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>PERSONAL DETAILS</Text>
             

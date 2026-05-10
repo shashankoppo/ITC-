@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, TextInput, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { 
@@ -36,6 +36,7 @@ const FAQs = [
 ];
 
 export default function HelpScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -62,7 +63,7 @@ export default function HelpScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={[width > 800 && { maxWidth: 800, alignSelf: 'center', width: '100%' }]}>
         <View style={styles.heroSection}>
           <HelpCircle size={48} color={COLORS.primary} strokeWidth={1.5} />
           <Text style={styles.heroTitle}>How can we help you?</Text>

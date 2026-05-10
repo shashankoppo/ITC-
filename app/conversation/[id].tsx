@@ -9,6 +9,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +24,7 @@ import { messageApi } from '@/lib/api';
 import { API_CONFIG } from '@/lib/api_config';
 
 export default function ConversationScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { user } = useAuth();
@@ -201,7 +203,7 @@ export default function ConversationScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <View style={[styles.header, width > 1000 && { maxWidth: 1000, alignSelf: 'center', width: '100%' }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <ArrowLeft size={24} color="#222" />
         </TouchableOpacity>
@@ -236,7 +238,7 @@ export default function ConversationScreen() {
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messagesList}
+        contentContainerStyle={[styles.messagesList, width > 1000 && { maxWidth: 1000, alignSelf: 'center', width: '100%' }]}
         onContentSizeChange={() =>
           flatListRef.current?.scrollToEnd({ animated: true })
         }
@@ -249,7 +251,7 @@ export default function ConversationScreen() {
       />
 
       <KeyboardAvoidingView behavior="padding">
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, width > 1000 && { maxWidth: 1000, alignSelf: 'center', width: '100%' }]}>
           <TextInput
             style={styles.input}
             placeholder="Type your message..."

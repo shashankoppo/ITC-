@@ -20,9 +20,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 import { userApi } from '@/lib/api';
 
-const { width } = Dimensions.get('window');
+import { useWindowDimensions } from 'react-native';
 
 export default function SellerDashboardScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { user, profile } = useAuth();
   const [stats, setStats] = useState({
@@ -78,7 +79,7 @@ export default function SellerDashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={[width > 1000 && { maxWidth: 1000, alignSelf: 'center', width: '100%' }]}>
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <Text style={styles.welcomeTitle}>Welcome, {profile?.full_name?.split(' ')[0] || 'Seller'}!</Text>
@@ -202,7 +203,9 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.borderLight,
   },
   statCard: {
-    width: (width / 2) - SPACING.md,
+    flex: 1,
+    minWidth: 150,
+    maxWidth: 250,
     backgroundColor: COLORS.surface,
     padding: SPACING.md,
     margin: SPACING.sm / 2,

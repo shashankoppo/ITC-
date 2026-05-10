@@ -7,6 +7,7 @@ import {
   Image,
   ActivityIndicator,
   FlatList,
+  useWindowDimensions,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,6 +31,7 @@ import { ProductCard } from '@/components/ProductCard';
 import { Product } from '@/types/database';
 
 export default function PublicProfileScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { user: currentUser } = useAuth();
@@ -170,7 +172,7 @@ export default function PublicProfileScreen() {
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[width > 1200 && { maxWidth: 1200, alignSelf: 'center', width: '100%' }]}>
         <View style={styles.profileCard}>
           <View style={styles.profileMain}>
             <Image
@@ -260,11 +262,14 @@ export default function PublicProfileScreen() {
 
         <View style={styles.listingsGrid}>
           {products.length > 0 ? (
-            products.map((item) => (
-              <View key={item.id} style={styles.productWrapper}>
-                <ProductCard product={item} />
-              </View>
-            ))
+            products.map((item) => {
+              const numColumns = width > 1200 ? 5 : width > 768 ? 3 : 2;
+              return (
+                <View key={item.id} style={[styles.productWrapper, { width: `${100 / numColumns}%` }]}>
+                  <ProductCard product={item} />
+                </View>
+              );
+            })
           ) : (
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>No active listings</Text>

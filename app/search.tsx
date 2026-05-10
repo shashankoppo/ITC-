@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Search as SearchIcon, SlidersHorizontal, X, MapPin } from 'lucide-react-native';
@@ -10,6 +10,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '@/constants/Theme';
 import { FilterModal } from '@/components/FilterModal';
 
 export default function SearchScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const params = useLocalSearchParams();
   const [query, setQuery] = useState(params.q as string || '');
@@ -138,9 +139,10 @@ export default function SearchScreen() {
           data={results}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          numColumns={2}
+          key={width > 768 ? 3 : 2}
+          numColumns={width > 768 ? 3 : 2}
           columnWrapperStyle={styles.row}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, width > 1200 && { maxWidth: 1200, alignSelf: 'center', width: '100%' }]}
           ListEmptyComponent={
             query ? (
               <View style={styles.emptyContainer}>
